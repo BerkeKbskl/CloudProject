@@ -26,6 +26,9 @@ export default function Dashboard() {
 
   return (
     <div className={`dashboard ${isLoading ? 'loading' : 'loaded'}`}>
+      <div className="dev-signature">
+        Developed by Berke Kabasakal
+      </div>
       <div className="dashboard-header">
         <div className="user-welcome">
           <span>Welcome, {currentUser ? (currentUser.displayName || currentUser.email) : 'Guest'}</span>
