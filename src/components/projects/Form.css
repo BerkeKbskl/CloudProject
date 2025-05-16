@@ -1,25 +1,20 @@
+/* Streamlined Form Styles */
 :root {
-  /* Form specific variables */
-  --form-bg: #ffffff;
+  --form-bg: #fff;
   --form-border: #e5e7eb;
-  --form-radius: 0.5rem;
+  --form-radius: 8px;
   --form-shadow: 0 2px 8px rgba(0,0,0,0.06);
   --form-padding: 1.5rem;
-  --form-gap: 1.5rem;
+  --form-gap: 1.25rem;
   --input-height: 2.5rem;
   --input-padding: 0.75rem;
   --input-border: #d1d5db;
   --input-focus: #4f46e5;
   --input-focus-shadow: rgba(79, 70, 229, 0.15);
   --btn-height: 2.5rem;
-
-  /* Badge specific variables */
-  --badge-height: 1.5rem;
-  --badge-padding: 0.25rem 0.75rem;
-  --badge-font: 0.75rem;
   --badge-radius: 9999px;
-  
-  /* Status Colors */
+  --badge-font: 0.75rem;
+  --badge-padding: 0.25rem 0.75rem;
   --status-success: #10b981;
   --status-success-bg: #d1fae5;
   --status-warning: #f59e0b;
@@ -28,21 +23,46 @@
   --status-error-bg: #fee2e2;
   --status-info: #6366f1;
   --status-info-bg: #e0e7ff;
-  
-  /* Remove redundant shadows, keep only essential ones */
-  --shadow-main: 0 2px 8px rgba(0,0,0,0.06);
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --radius: 8px;
 }
 
-/* Form Container */
-.form-container {
+/* Container */
+.form-container, .form-card {
   background: var(--form-bg);
   border-radius: var(--form-radius);
+  border: 1px solid var(--form-border);
+  padding: var(--form-padding);
   margin-bottom: 1.5rem;
 }
 
-/* Form Group */
-.form-group {
-  margin-bottom: var(--form-gap);
+/* Group & Grid */
+.form-group { margin-bottom: var(--form-gap); }
+
+.form-group { margin-bottom: var(--space-6); }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+.form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+@media (max-width: 640px) {
+  .form-row { flex-direction: column; }
+  .form-row > * { width: 100%; }
 }
 
 /* Labels */
@@ -54,78 +74,116 @@
   margin-bottom: 0.5rem;
 }
 
-/* Text Inputs */
-.form-input {
-  width: 100%;
-  height: var(--input-height);
-  padding: 0 var(--input-padding);
-  font-size: var(--text-base);
-  line-height: var(--input-height);
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
   color: var(--gray-700);
-  background-color: white;
-  border: 1px solid var(--input-border);
-  border-radius: var(--radius);
-  transition: all 0.2s ease;
+  margin-bottom: var(--space-2);
 }
 
-.form-input:focus {
-  outline: none;
-  border-color: var(--input-focus);
-  box-shadow: 0 0 0 3px var(--input-focus-shadow);
-}
-
-/* Textarea */
-.form-textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: var(--input-padding);
-  font-size: var(--text-base);
-  line-height: 1.5;
-  color: var(--gray-700);
-  background-color: white;
-  border: 1px solid var(--input-border);
-  border-radius: var(--radius);
-  resize: vertical;
-  transition: all 0.2s ease;
-}
-
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--input-focus);
-  box-shadow: 0 0 0 3px var(--input-focus-shadow);
-}
-
-/* Select */
+/* Inputs, Textarea, Select */
+.form-input,
+.form-textarea,
 .form-select {
   width: 100%;
-  height: var(--input-height);
-  padding: 0 var(--input-padding);
   font-size: var(--text-base);
   color: var(--gray-700);
-  background-color: white;
+  background: #fff;
   border: 1px solid var(--input-border);
   border-radius: var(--radius);
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
+  transition: all 0.2s;
 }
-
+.form-input,
+.form-select { height: var(--input-height); padding: 0 var(--input-padding); }
+.form-textarea { min-height: 100px; padding: var(--input-padding); resize: vertical; line-height: 1.5; }
+.form-input:focus,
+.form-textarea:focus,
 .form-select:focus {
   outline: none;
   border-color: var(--input-focus);
   box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
-/* Checkboxes & Radio buttons */
+/* .form-control is an alias for .form-input/.form-textarea, so add it for compatibility */
+.form-control,
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  background-color: var(--form-bg);
+  transition: all 0.2s;
+}
+
+.form-control:focus,
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow, rgba(79, 70, 229, 0.15));
+}
+
+textarea.form-control,
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Select arrow */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  cursor: pointer;
+}
+
+/* Checkbox/Radio */
 .form-checkbox,
 .form-radio {
   width: 1rem;
   height: 1rem;
   margin-right: 0.5rem;
   accent-color: var(--primary);
+}
+
+/* Radio groups */
+.radio-group {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--space-4);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.radio-option:hover { background-color: var(--gray-100); }
+.radio-input { margin: var(--space-1) var(--space-3) 0 0; }
+.radio-label { flex: 1; }
+
+.radio-label-title {
+  font-weight: 500;
+  color: var(--gray-900);
+  margin-bottom: var(--space-1);
+}
+
+.radio-label-description {
+  font-size: var(--text-sm);
+  color: var(--gray-500);
 }
 
 /* Buttons */
@@ -140,43 +198,29 @@
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
-
 .form-btn-primary {
-  background-color: var(--primary);
-  color: white;
+  background: var(--primary);
+  color: #fff;
 }
-
-.form-btn-primary:hover:not(:disabled) {
-  background-color: var(--primary-dark);
-}
-
+.form-btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
 .form-btn-secondary {
-  background-color: var(--gray-100);
+  background: var(--gray-100);
   color: var(--gray-700);
 }
-
-.form-btn-secondary:hover:not(:disabled) {
-  background-color: var(--gray-200);
-}
-
+.form-btn-secondary:hover:not(:disabled) { background: var(--gray-200); }
 .form-btn-danger {
-  background-color: var(--danger-light);
+  background: var(--danger-light);
   color: var(--danger);
 }
-
 .form-btn-danger:hover:not(:disabled) {
-  background-color: var(--danger);
-  color: white;
+  background: var(--danger);
+  color: #fff;
 }
+.form-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.form-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Form Actions */
+/* Actions */
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -184,196 +228,81 @@
   margin-top: 2rem;
 }
 
-/* Error States */
+/* Error/Helper */
 .form-error {
   color: var(--danger);
   font-size: var(--text-sm);
   margin-top: 0.5rem;
 }
-
-.input-error {
-  border-color: var(--danger);
-}
-
-.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
-}
-
-/* Helper Text */
+.input-error { border-color: var(--danger); }
+.input-error:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
 .form-helper {
   font-size: var(--text-sm);
   color: var(--gray-500);
   margin-top: 0.5rem;
 }
 
-/* New Badge System */
+/* Badges */
 .badge {
   display: inline-flex;
   align-items: center;
-  height: var(--badge-height);
+  height: 1.5rem;
   padding: var(--badge-padding);
   font-size: var(--badge-font);
   font-weight: 600;
   border-radius: var(--badge-radius);
   line-height: 1;
   white-space: nowrap;
-}
-
-/* Badge Variants */
-.badge-success {
-  color: var(--status-success);
-  background: var(--status-success-bg);
-}
-
-.badge-warning {
-  color: var(--status-warning);
-  background: var(--status-warning-bg);
-}
-
-.badge-error {
-  color: var(--status-error);
-  background: var(--status-error-bg);
-}
-
-.badge-info {
-  color: var(--status-info);
-  background: var(--status-info-bg);
-}
-
-/* Badge Sizes */
-.badge-sm {
-  height: 1.25rem;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.7rem;
-}
-
-.badge-lg {
-  height: 1.75rem;
-  padding: 0.375rem 1rem;
-  font-size: 0.875rem;
-}
-
-/* Badge with Icon */
-.badge-with-icon {
   gap: 0.375rem;
 }
+.badge-success { color: var(--status-success); background: var(--status-success-bg); }
+.badge-warning { color: var(--status-warning); background: var(--status-warning-bg); }
+.badge-error { color: var(--status-error); background: var(--status-error-bg); }
+.badge-info { color: var(--status-info); background: var(--status-info-bg); }
+.badge-sm { height: 1.25rem; padding: 0.125rem 0.5rem; font-size: 0.7rem; }
+.badge-lg { height: 1.75rem; padding: 0.375rem 1rem; font-size: 0.875rem; }
 
-.badge-with-icon svg {
-  width: 0.875em;
-  height: 0.875em;
-}
+/* Context badges */
+.badge-role.owner { background: #fef3c7; color: #b45309; }
+.badge-role.collaborator { background: #ede9fe; color: #6d28d9; }
+.badge-visibility.public { background: #d1fae5; color: #059669; }
+.badge-visibility.private { background: #fef3c7; color: #b45309; }
+.badge-status.active { background: #d1fae5; color: #059669; }
+.badge-status.pending { background: #fef3c7; color: #d97706; }
+.badge-status.urgent { background: #fee2e2; color: #dc2626; }
 
-/* Badge System Enhancements */
-.badge {
-  /* ...existing badge code... */
-}
-
-/* Context-based badges */
-.badge-role.owner {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.badge-role.collaborator {
-  background: #ede9fe;
-  color: #6d28d9;
-}
-
-.badge-visibility.public {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.badge-visibility.private {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.badge-status.active {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.badge-status.pending {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.badge-status.urgent {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-/* Form Card - without shadow when inside other cards */
-.form-card {
-  background: var(--form-bg);
-  border-radius: var(--form-radius);
-  border: 1px solid var(--form-border);
-  padding: var(--form-padding);
-}
-
-/* Input Groups */
+/* Input group */
 .input-group {
   display: flex;
   gap: 0.5rem;
 }
-
 .input-group .form-input:not(:last-child) {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-
 .input-group .form-btn:not(:first-child) {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
 
-/* Inline Form Elements */
+/* Inline form */
 .form-inline {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
 .form-inline .form-label {
   margin: 0;
   white-space: nowrap;
 }
 
-/* Status Indicators */
+/* Status indicator */
 .status-indicator {
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
 }
-
-.status-indicator.active { background-color: var(--status-success); }
-.status-indicator.pending { background-color: var(--status-warning); }
-.status-indicator.inactive { background-color: var(--status-error); }
-
-
-
-/* Task View Enhancements */
-/* General Form Layout Improvements */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-@media (max-width: 640px) {
-  .form-row {
-    flex-direction: column;
-  }
-  
-  .form-row > * {
-    width: 100%;
-  }
-}
+.status-indicator.active { background: var(--status-success); }
+.status-indicator.pending { background: var(--status-warning); }
+.status-indicator.inactive { background: var(--status-error); }
