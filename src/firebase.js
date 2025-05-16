@@ -14,19 +14,12 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
+import { initializeApp } from "firebase/app";
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 const rtdb = getDatabase(app);
-
-// Use emulators based on environment variable
-if (process.env.REACT_APP_USE_FIREBASE_EMULATOR === 'true') {
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  connectAuthEmulator(auth, 'http://localhost:9099');
-  connectFunctionsEmulator(functions, 'localhost', 5001);
-  connectDatabaseEmulator(rtdb, 'localhost', 9000);
-}
 
 export { app, db, auth, functions, rtdb };
