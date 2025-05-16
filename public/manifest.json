@@ -1,0 +1,8 @@
+{
+  "short_name": "Project Manager",
+  "name": "Project Management System",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
