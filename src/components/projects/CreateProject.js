@@ -1,13 +1,17 @@
 // components/projects/CreateProject.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProjects } from '../../contexts/ProjectContext';
-import { useAuth } from '../../contexts/AuthContext'; // Auth context'i eklendi
+import { useAuth } from '../../contexts/AuthContext';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import './CreateProject.css';
 
-
-
 export default function CreateProject() {
+  const functions = getFunctions();
+  const createProjectFunction = useMemo(
+    () => httpsCallable(functions, 'createProject'),
+    [functions]
+  );
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -15,8 +19,7 @@ export default function CreateProject() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { createProject } = useProjects();
-  const { currentUser } = useAuth(); // Kullanıcı bilgisini al
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -33,12 +36,15 @@ export default function CreateProject() {
     if (!formData.name.trim()) {
       return setError('Project name cannot be empty');
     }
+
+    if (!currentUser?.uid) {
+      return setError('User authentication required');
+    }
     
     try {
       setError('');
       setLoading(true);
       
-      // Add the creator to the collaborators list
       const collaborators = [{
         userId: currentUser.uid,
         email: currentUser.email,
@@ -46,17 +52,22 @@ export default function CreateProject() {
         addedAt: new Date()
       }];
       
-      const newProject = await createProject({
-        name: formData.name,
-        description: formData.description,
+      const result = await createProjectFunction({
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         visibility: formData.visibility,
         ownerId: currentUser.uid,
         collaborators: collaborators
       });
-      
-      navigate(`/projects/${newProject.id}`);
+
+      if (result.data.success) {
+        navigate(`/projects/${result.data.projectId}`);
+      } else {
+        throw new Error(result.data.message || 'Failed to create project');
+      }
     } catch (error) {
-      setError('Project could not be created: ' + error.message);
+      console.error('Project creation error:', error);
+      setError('Project could not be created: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }

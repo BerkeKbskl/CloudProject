@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import '../projects/CreateProject.css';
 import './Avatar.css';
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+const functions = getFunctions();
 
 export default function UserPage() {
   const { userId } = useParams();
@@ -17,30 +18,61 @@ export default function UserPage() {
   const [newDisplayName, setNewDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Memoized OnCall function references
+  const getUserProfileData = useMemo(() => httpsCallable(functions, 'getUserProfileData'), []);
+  const updateUserProfileData = useMemo(() => httpsCallable(functions, 'updateUserProfileData'), []);
+
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
+      if (!userId) {
+        setLoading(false);
+        setError("User ID not found. Please make sure you are on a valid user page.");
+        return;
+      }
 
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
+      try {
+        setLoading(true);
+        setError('');
+
+        // Debug log
+        // console.log("Sending userId:", userId);
+
+        const result = await getUserProfileData({ userId: userId.trim() });
+
+        if (result.data) {
+          const userData = result.data;
+          // console.log("User data received:", userData);
           setUser({
             ...userData,
-            createdAt: userData.createdAt?.toDate() || null,
+            createdAt: userData.createdAt ? new Date(userData.createdAt) : null,
           });
         } else {
-          setError('User not found.');
+          setError('Could not retrieve user data.');
         }
       } catch (err) {
-        setError('An error occurred while loading user information.');
+        // console.error('Error loading user info:', err);
+        // console.log('Error details:', {
+        //   code: err.code,
+        //   message: err.message,
+        //   details: err.details,
+        //   stack: err.stack
+        // });
+        if (err.code === 'not-found') {
+          setError('User not found.');
+        } else if (err.code === 'internal') {
+          setError('A server connection error occurred. Please try again later.');
+        } else if (err.details) {
+          setError('Error: ' + err.details.message);
+        } else {
+          setError('An error occurred while loading user information: ' + (err.message || err));
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [userId]);
+  }, [userId, getUserProfileData]);
 
   const handleUpdateDisplayName = async (e) => {
     e.preventDefault();
@@ -48,14 +80,26 @@ export default function UserPage() {
 
     try {
       setIsSaving(true);
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
+      setError('');
+
+      await updateUserProfileData({
+        userId: userId.trim(),
         displayName: newDisplayName.trim()
       });
+
       setUser(prev => ({ ...prev, displayName: newDisplayName.trim() }));
       setIsEditing(false);
     } catch (err) {
-      setError('An error occurred while updating the name.');
+      // console.error('Error updating name:', err);
+      if (err.code === 'unauthenticated') {
+        setError('Your session has expired, please log in again.');
+      } else if (err.code === 'permission-denied') {
+        setError('You do not have permission for this action.');
+      } else if (err.details) {
+        setError('Error: ' + err.details.message);
+      } else {
+        setError('An error occurred while updating the name: ' + (err.message || err));
+      }
     } finally {
       setIsSaving(false);
     }
@@ -106,6 +150,7 @@ export default function UserPage() {
                   type="button" 
                   className="btn-cancel"
                   onClick={() => setIsEditing(false)}
+                  disabled={isSaving}
                 >
                   Cancel
                 </button>

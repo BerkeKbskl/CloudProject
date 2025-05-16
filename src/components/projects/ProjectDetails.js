@@ -1,5 +1,5 @@
 // components/projects/ProjectDetails.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -13,6 +13,7 @@ import EditProject from './EditProject';
 import ProjectChat from './ProjectChat';
 import './CollaboratorsList.css';
 import './Form.css';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 export default function ProjectDetails() {
   const { projectId } = useParams();
@@ -35,16 +36,13 @@ export default function ProjectDetails() {
   // States for tasks
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(true);
+  const functions = getFunctions();
+
+  const deleteTaskFunction = useMemo(() => httpsCallable(functions, 'deleteTask'), [functions]);
+  const updateTaskFunction = useMemo(() => httpsCallable(functions, 'updateTask'), [functions]);
 
   const { name: editName, description: editDescription, visibility: editVisibility } = editForm;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   const fetchProjectDetails = useCallback(async () => {
     try {
@@ -99,8 +97,6 @@ export default function ProjectDetails() {
   const fetchTasks = useCallback(async () => {
     setTasksLoading(true);
     try {
-      // Modified query to handle the index error
-      // Option 1: Use only a single orderBy with where
       const tasksRef = collection(db, 'tasks');
       const q = query(
         tasksRef,
@@ -155,7 +151,7 @@ export default function ProjectDetails() {
       fetchTasks();
     } else {
       setLoading(false);
-      setError('You need to log in to view this page.');
+      setError('This page requires you to be logged in.');
     }
   }, [currentUser, fetchProjectDetails, fetchTasks]);
   const [hasFocus, setHasFocus] = useState(false);
@@ -185,24 +181,13 @@ export default function ProjectDetails() {
       fetchTasks();
     } else {
       setLoading(false);
-      setError('You need to log in to view this page.');
+      setError('This page requires you to be logged in.');
     }
   }, [currentUser, fetchProjectDetails, fetchTasks]);
 
-  const handleOpenTaskModal = (task = null) => {
-    console.debug('Task modal functionality removed'); // Debug log
-  };
-
-  const handleCloseTaskModal = () => {
-    console.debug('Task modal functionality removed'); // Debug log
-  };
-
-  const handleTaskSaved = () => {
-    fetchTasks();
-  };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if(window.confirm('Do you really want to delete this project? This action cannot be undone.')) {
       try {
         setIsSubmitting(true);
         await deleteProject(projectId);
@@ -254,7 +239,7 @@ export default function ProjectDetails() {
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp) return 'No date';
+    if (!timestamp) return 'Invalid date';
 
     try {
       const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
@@ -271,18 +256,50 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleEdit = () => {
-    navigate(`/projects/${projectId}/edit`);
-  };
-
   const handleUpdateProject = (projectId) => {
     navigate(`/projects/${projectId}/edit`);
   };
 
-  const getProjectRole = () => {
-    if (project.isOwner) return 'owner';
-    if (project.isCollaborator) return 'collaborator';
-    return null;
+  const handleDeleteTask = async (taskId) => {
+    if(window.confirm('Do you really want to delete this task? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await deleteTaskFunction({ taskId, projectId });
+      setTasks(currentTasks => currentTasks.filter(task => task.id !== taskId));
+      console.log('Task deleted successfully');
+    } catch (error) {
+      setError('An error occurred while deleting the task: ' + error.message);
+    }
+  };
+
+  const handleToggleComplete = async (taskId, currentStatus) => {
+    try {
+      await updateTaskFunction({
+        taskId,
+        projectId,
+        updates: {
+          completed: !currentStatus
+        }
+      });
+
+      setTasks(currentTasks =>
+        currentTasks.map(task =>
+          task.id === taskId
+            ? { ...task, completed: !currentStatus }
+            : task
+        )
+      );
+    } catch (error) {
+      setError('An error occurred while updating the task: ' + error.message);
+    }
+  };
+
+  const taskProps = {
+    onDelete: handleDeleteTask,
+    onToggleComplete: handleToggleComplete,
+    canEdit: project?.isOwner || project?.isCollaborator
   };
 
   if (loading) {
@@ -301,7 +318,7 @@ export default function ProjectDetails() {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
-          Return to Dashboard
+          Back to Dashboard
         </Link>
       </div>
     );
@@ -310,9 +327,9 @@ export default function ProjectDetails() {
   if (!project) {
     return (
       <div className="empty-state">
-        <p className="empty-state-text">Project not found.</p>
+        <p className="empty-state-text">Project cannot be found.</p>
         <Link to="/dashboard" className="empty-state-link">
-          Return to Dashboard
+          Back to Dashboard
         </Link>
       </div>
     );
@@ -340,9 +357,9 @@ export default function ProjectDetails() {
       <div className="project-content">
         <div className="project-meta">
           <div className="meta-dates">
-            <span>Created: {formatDate(project.createdAt)}</span>
+            <span>Created At: {formatDate(project.createdAt)}</span>
             {project.updatedAt && project.updatedAt !== project.createdAt && (
-              <span> • Updated: {formatDate(project.updatedAt)}</span>
+              <span> • Updated At: {formatDate(project.updatedAt)}</span>
             )}
           </div>
           {canEdit && (
@@ -371,13 +388,13 @@ export default function ProjectDetails() {
           <div className="project-body">
             <h3 className="project-section-title">Description</h3>
             <p className="project-description">
-              {project.description || 'No description has been added for this project.'}
+              {project.description || 'There is no description for this project yet.'}
             </p>
           </div>
 
           {project.isOwner && (
             <div className="project-body">
-              <h3 className="project-section-title">Project Team</h3>
+              <h3 className="project-section-title">Project Members</h3>
               <CollaboratorsList
                 projectId={project.id}
                 collaborators={project.collaborators || []}
@@ -392,7 +409,7 @@ export default function ProjectDetails() {
             {canEdit && (
               <button
                 onClick={() => {
-                  console.debug('Add New Task button clicked');
+                  console.debug('Add new task button clicked');
                   sessionStorage.setItem('prevTaskCount', tasks.length);
                   navigate(`/projects/${projectId}/tasks/create`);
                 }}
@@ -402,24 +419,19 @@ export default function ProjectDetails() {
               </button>
             )}
             {tasksLoading ? (
-              <p>Loading tasks...</p>
+              <p>Tasks are loading...</p>
             ) : tasks.length > 0 ? (
-              <ul className="task-list">
+              <div className="tasks-list">
                 {tasks.map(task => (
                   <TaskItem
                     key={task.id}
                     task={task}
-                    canEdit={canEdit}
-                    onToggleComplete={refreshProject}
-                    onDelete={() => {
-                      setTasks(currentTasks => currentTasks.filter(t => t.id !== task.id));
-                      fetchTasks();
-                    }}
+                    {...taskProps}
                   />
                 ))}
-              </ul>
+              </div>
             ) : (
-              <p>No tasks have been added to this project yet.</p>
+              <p>There are no tasks in this project yet.</p>
             )}
           </div>
 

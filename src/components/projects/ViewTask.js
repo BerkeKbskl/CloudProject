@@ -1,12 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useAuth } from '../../contexts/AuthContext';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import './ViewTask.css';
 
 export default function ViewTask() {
   const { taskId } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const functions = getFunctions();
+  
+  // Cloud Functions references
+  const getTaskDetailsFunction = httpsCallable(functions, 'getTaskDetails');
+  const addSubtaskFunction = httpsCallable(functions, 'addSubtask');
+
   const [task, setTask] = useState({
     name: '',
     description: '',
@@ -18,49 +27,96 @@ export default function ViewTask() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [canEdit, setCanEdit] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Fetch task details function
+  const fetchTask = useCallback(async () => {
+    if (!currentUser || !taskId) return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const result = await getTaskDetailsFunction({
+        taskId,
+        userId: currentUser.uid
+      });
+
+      const taskData = result.data;
+      setTask({
+        id: taskId,
+        ...taskData
+      });
+      setCanEdit(taskData.canEdit);
+    } catch (err) {
+      setError(`Error loading task: ${err.message}`);
+      console.error('Error fetching task:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [taskId, currentUser?.uid]);
 
   useEffect(() => {
-    const fetchTask = async () => {
-      try {
-        const taskRef = doc(db, 'tasks', taskId);
-        const taskSnap = await getDoc(taskRef);
+    let isMounted = true;
 
-        if (taskSnap.exists()) {
-          const taskData = taskSnap.data();
-          setTask({
-            id: taskSnap.id,
-            ...taskData,
-            subtasks: taskData.subtasks || [],
-            createdAt: taskData.createdAt || null,
-            updatedAt: taskData.updatedAt || null
-          });
-        } else {
-          setError('Task not found');
-        }
-      } catch (err) {
-        setError(`An error occurred while loading the task: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
+    const loadTask = async () => {
+      if (!isMounted) return;
+      await fetchTask();
     };
 
-    fetchTask();
-  }, [taskId]);
+    loadTask();
 
- const updateProjectTimestamp = async (projectId) => {
-  try {
-    if (!projectId) return;
-    const projectRef = doc(db, 'projects', projectId);
-    await updateDoc(projectRef, {
-      updatedAt: Timestamp.now()
-    });
-  } catch (err) {
-    console.error('Error updating project timestamp:', err);
-  }
-};
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchTask, refreshKey]);
 
+  const formatDate = useCallback((timestamp) => {
+    if (!timestamp) return 'Not specified';
+    try {
+      let date;
+      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+      } else if (timestamp._seconds) {
+        date = new Date(timestamp._seconds * 1000);
+      } else {
+        date = new Date(timestamp);
+      }
 
-  const updateSubtasksInFirestore = async (updatedSubtasks) => {
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (err) {
+      console.error('Date formatting error:', err);
+      return 'Invalid date';
+    }
+  }, []);
+
+  const completionPercentage = useMemo(() => {
+    if (!task.subtasks || task.subtasks.length === 0) return 0;
+    const completedCount = task.subtasks.filter((subtask) => subtask.completed).length;
+    return Math.round((completedCount / task.subtasks.length) * 100);
+  }, [task.subtasks]);
+
+  const updateProjectTimestamp = useCallback(async (projectId) => {
+    try {
+      if (!projectId) return;
+      const projectRef = doc(db, 'projects', projectId);
+      await updateDoc(projectRef, {
+        updatedAt: Timestamp.now()
+      });
+    } catch (err) {
+      console.error('Error updating project timestamp:', err);
+    }
+  }, []);
+
+  const updateSubtasksInFirestore = useCallback(async (updatedSubtasks) => {
+    if (!taskId) return false;
     try {
       const taskRef = doc(db, 'tasks', taskId);
       await updateDoc(taskRef, { subtasks: updatedSubtasks });
@@ -69,54 +125,72 @@ export default function ViewTask() {
       console.error('Error updating subtasks:', err);
       return false;
     }
-  };
+  }, [taskId]);
 
-  const handleToggleSubtask = async (index) => {
-    const updatedSubtasks = task.subtasks.map((subtask, i) =>
+  // Toggle subtask completion
+  const handleToggleSubtask = useCallback(async (index) => {
+    const currentSubtasks = task.subtasks;
+    const updatedSubtasks = currentSubtasks.map((subtask, i) =>
       i === index ? { ...subtask, completed: !subtask.completed } : subtask
     );
 
     const success = await updateSubtasksInFirestore(updatedSubtasks);
     if (success) {
+      setTask(prev => ({ ...prev, subtasks: updatedSubtasks }));
       await updateProjectTimestamp(task.projectId);
-      setTask((prev) => ({ ...prev, subtasks: updatedSubtasks }));
     }
-  };
+  }, [task.subtasks, task.projectId, updateSubtasksInFirestore, updateProjectTimestamp]);
 
-  const handleToggleTaskCompletion = async () => {
+  // Toggle task completion, then refresh
+  const handleToggleTaskCompletion = useCallback(async () => {
     try {
       const taskRef = doc(db, 'tasks', taskId);
       const newCompletionStatus = !task.completed;
       await updateDoc(taskRef, { completed: newCompletionStatus });
       await updateProjectTimestamp(task.projectId);
-      setTask((prev) => ({ ...prev, completed: newCompletionStatus }));
+      setRefreshKey(prev => prev + 1); // Trigger refresh
     } catch (err) {
-      console.error('Görev durumunu güncellerken hata:', err);
+      console.error('Error updating task completion:', err);
     }
-  };
+  }, [taskId, task.completed, task.projectId, updateProjectTimestamp]);
 
-  const calculateCompletionPercentage = (subtasks) => {
-    if (!subtasks || subtasks.length === 0) return 0;
-    const completedCount = subtasks.filter((subtask) => subtask.completed).length;
-    return Math.round((completedCount / subtasks.length) * 100);
-  };
-
-  const handleAddSubtask = async () => {
-    const subtaskName = prompt('Enter the name of the new subtask:');
-    if (!subtaskName?.trim()) return;
-
-    const newSubtask = { name: subtaskName.trim(), completed: false };
-    const updatedSubtasks = [...(task.subtasks || []), newSubtask];
-
-    const success = await updateSubtasksInFirestore(updatedSubtasks);
-    if (success) {
-      await updateProjectTimestamp(task.projectId);
-      setTask((prev) => ({ ...prev, subtasks: updatedSubtasks }));
+  // Add subtask, then refresh
+  const handleAddSubtask = useCallback(async () => {
+    if (!taskId || !task.projectId || !currentUser?.uid) {
+      setError('Required information is missing. Please try again.');
+      return;
     }
-  };
 
-  const handleRemoveSubtask = async (index) => {
-    if (!window.confirm('Are you sure you want to delete this subtask?')) {
+    const subtaskName = prompt('Enter new subtask name:');
+    if (!subtaskName?.trim()) {
+      setError('Subtask name cannot be empty');
+      return;
+    }
+
+    try {
+      setError('');
+      const result = await addSubtaskFunction({
+        taskId,
+        name: subtaskName.trim(),
+        projectId: task.projectId,
+        userId: currentUser.uid
+      });
+
+      if (result.data.success) {
+        setTask(prev => ({
+          ...prev,
+          subtasks: [...(prev.subtasks || []), result.data.subtask]
+        }));
+      }
+    } catch (err) {
+      console.error('Error adding subtask:', err);
+      setError(err.message || 'Failed to add subtask');
+    }
+  }, [taskId, task.projectId, currentUser?.uid, addSubtaskFunction]);
+
+  // Remove subtask, then refresh
+  const handleRemoveSubtask = useCallback(async (index) => {
+    if (!window.confirm('Are you sure you want to remove this subtask?')) {
       return;
     }
 
@@ -124,26 +198,9 @@ export default function ViewTask() {
     const success = await updateSubtasksInFirestore(updatedSubtasks);
     if (success) {
       await updateProjectTimestamp(task.projectId);
-      setTask((prev) => ({ ...prev, subtasks: updatedSubtasks }));
+      setRefreshKey(prev => prev + 1); // Trigger refresh
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Not specified';
-
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (err) {
-      return 'Invalid date';
-    }
-  };
+  }, [task.subtasks, task.projectId, updateSubtasksInFirestore, updateProjectTimestamp]);
 
   const getPriorityBadgeClass = () => {
     if (task.priority?.toLowerCase() === 'low') return 'badge-priority-low';
@@ -158,8 +215,6 @@ export default function ViewTask() {
 
   if (loading) return <div className="loading">Loading task...</div>;
   if (error) return <div className="error-message">{error}</div>;
-
-  const completionPercentage = calculateCompletionPercentage(task.subtasks);
 
   return (
     <>
@@ -184,12 +239,12 @@ export default function ViewTask() {
             <div className="meta-dates">
               <div className="metadata-item">
                 <span className="metadata-label">Created:</span>
-                <span>{formatDate(task.createdAt?.toDate())}</span>
+                <span>{task.createdAt ? formatDate(task.createdAt) : 'Not specified'}</span>
               </div>
               {task.updatedAt && (
                 <div className="metadata-item">
                   <span className="metadata-label">Last Update:</span>
-                  <span>{formatDate(task.updatedAt?.toDate())}</span>
+                  <span>{formatDate(task.updatedAt)}</span>
                 </div>
               )}
             </div>
@@ -258,37 +313,31 @@ export default function ViewTask() {
               {task.subtasks && task.subtasks.length > 0 ? (
                 <ul className="subtask-list">
                   {task.subtasks.map((subtask, index) => (
-                    <li key={index} className={`subtask-item ${subtask.completed ? 'subtask-completed' : ''}`}>
-                      <div className="subtask-content">
+                    <li key={index} className={`subtask-item ${subtask.completed ? 'completed' : ''}`}>
+                      <label className="checkbox-container">
                         <input
                           type="checkbox"
-                          id={`subtask-${index}`}
                           checked={subtask.completed}
                           onChange={() => handleToggleSubtask(index)}
-                          className="subtask-checkbox"
+                          disabled={!canEdit}
                         />
-                        <label
-                          htmlFor={`subtask-${index}`}
-                          className={subtask.completed ? 'completed' : ''}
+                        <span className="checkmark"></span>
+                        <span className="subtask-name">{subtask.name}</span>
+                      </label>
+                      {canEdit && (
+                        <button
+                          className="btn btn-remove-subtask"
+                          onClick={() => handleRemoveSubtask(index)}
+                          aria-label="Remove subtask"
                         >
-                          {subtask.name}
-                        </label>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveSubtask(index)}
-                        className="btn btn-remove"
-                        title="Delete subtask"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                      </button>
+                          &times;
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="no-subtasks">No subtasks have been added yet.</p>
+                <p>No subtasks yet.</p>
               )}
             </section>
           </div>

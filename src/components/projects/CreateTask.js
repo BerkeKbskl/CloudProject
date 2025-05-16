@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, Timestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import './CreateProject.css';
 
 export default function CreateTask() {
+  const functions = getFunctions();
+  const createTaskFunction = httpsCallable(functions, 'createTask');
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -28,7 +31,11 @@ export default function CreateTask() {
         if (projectSnap.exists()) {
           const projectData = projectSnap.data();
           const isOwner = projectData.ownerId === currentUser?.uid;
-          const isCollaborator = projectData.collaborators?.includes(currentUser?.uid);
+          const isCollaborator = projectData.collaborators?.some(
+            collab => typeof collab === 'string' 
+              ? collab === currentUser?.uid 
+              : collab.userId === currentUser?.uid
+          );
 
           setHasAccess(isOwner || isCollaborator);
           if (!(isOwner || isCollaborator)) {
@@ -48,13 +55,9 @@ export default function CreateTask() {
     }
   }, [projectId, currentUser, navigate]);
 
-  if (!hasAccess) {
-    return null;
-  }
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -62,7 +65,6 @@ export default function CreateTask() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError('');
 
     if (!formData.name.trim()) {
@@ -72,32 +74,28 @@ export default function CreateTask() {
     try {
       setIsSubmitting(true);
 
-      const taskData = {
+      const result = await createTaskFunction({
         projectId,
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+        name: formData.name,
+        description: formData.description,
         priority: formData.priority,
-        dueDate: formData.dueDate ? Timestamp.fromDate(new Date(formData.dueDate)) : null,
-        completed: false,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
-
-      await addDoc(collection(db, 'tasks'), taskData);
-      
-      // Update the project's updatedAt timestamp
-      const projectRef = doc(db, 'projects', projectId);
-      await updateDoc(projectRef, {
-        updatedAt: Timestamp.now()
+        dueDate: formData.dueDate,
+        userId: currentUser.uid
       });
 
-      navigate(`/projects/${projectId}`);
+      if (result.data.success) {
+        navigate(`/projects/${projectId}`);
+      }
     } catch (err) {
-      setError(`An error occurred while creating the task: ${err.message}`);
+      setError(`Error creating task: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!hasAccess) {
+    return null;
+  }
 
   return (
     <>
