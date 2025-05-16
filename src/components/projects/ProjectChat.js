@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, getDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, onSnapshot, Timestamp, getDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,32 +14,24 @@ export default function ProjectChat({ projectId, canEdit }) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch messages periodically
+  // Use Firestore real-time updates instead of polling
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const q = query(
-          collection(db, 'messages'),
-          where('projectId', '==', projectId),
-          orderBy('createdAt', 'desc')
-        );
-        const snapshot = await getDocs(q);
-        const messageList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setMessages(messageList);
-      } catch (err) {
-        console.error('Error fetching messages:', err);
-      }
-    };
-
-    // Initial fetch
-    fetchMessages();
-
-    // Set up polling
-    const interval = setInterval(fetchMessages, 5000); // Fetch every 5 seconds
-    return () => clearInterval(interval); // Cleanup on unmount
+    if (!projectId) return;
+    const q = query(
+      collection(db, 'messages'),
+      where('projectId', '==', projectId),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messageList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMessages(messageList);
+    }, (err) => {
+      console.error('Error fetching messages:', err);
+    });
+    return () => unsubscribe();
   }, [projectId]);
 
   // Fetch user data for display names
