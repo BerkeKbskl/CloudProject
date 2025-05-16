@@ -32,11 +32,12 @@ export default function TaskItem({
       }).format(ts.toDate())
       : '–';
 
-  const priorityClass = {
-    low: 'priority-low',
-    medium: 'priority-medium',
-    high: 'priority-high'
-  }[priority];
+  const getPriorityBadgeClass = () => {
+    if (priority === 'low') return 'badge-priority-low';
+    if (priority === 'medium') return 'badge-priority-medium';
+    if (priority === 'high') return 'badge-priority-high';
+    return '';
+  };
 
   const calculateCompletionPercentage = (subtasks) => {
     if (!subtasks || subtasks.length === 0) return 0;
@@ -80,7 +81,7 @@ export default function TaskItem({
     e.stopPropagation();
 
     if (!canEdit) return; // Prevent unauthorized users from deleting
-    if (window.confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
+    if (window.confirm('Are you sure you want to delete this task?')) {
       try {
         const taskRef = doc(db, 'tasks', id);
         await deleteDoc(taskRef);
@@ -160,7 +161,7 @@ export default function TaskItem({
             </span>
           )}
           {priority && (
-            <span className={`task-priority ${priorityClass}`}>
+            <span className={`task-priority ${getPriorityBadgeClass()}`}>
               {priority.charAt(0).toUpperCase() + priority.slice(1)}
             </span>
           )}
@@ -180,10 +181,10 @@ export default function TaskItem({
       {canEdit && (
         <div className="list-actions">
           <Link to={`/projects/${task.projectId}/tasks/${id}/edit`} className="list-action-btn">
-            <i className="icon-edit"></i> Düzenle
+            <i className="icon-edit"></i> Edit
           </Link>
           <button onClick={handleDelete} className="list-action-btn delete">
-            <i className="icon-trash"></i> Sil
+            <i className="icon-trash"></i> Delete
           </button>
         </div>
       )}

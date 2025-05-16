@@ -91,7 +91,9 @@
 
 /* Badge (role, status, visibility) */
 .list-badge {
-  display: inline-block;
+  /* Use badge base style for consistency */
+  display: inline-flex;
+  align-items: center;
   border-radius: var(--list-badge-radius);
   font-size: var(--list-badge-font);
   font-weight: 600;
@@ -101,22 +103,13 @@
   color: #4f46e5;
 }
 
-.list-badge.owner {
-  background: #fef3c7;
-  color: #b45309;
-}
-.list-badge.collaborator {
-  background: #ede9fe;
-  color: #6d28d9;
-}
-.list-badge.public {
-  background: #d1fae5;
-  color: #059669;
-}
-.list-badge.private {
-  background: #fef3c7;
-  color: #b45309;
-}
+.list-badge.owner { background: #fef3c7; color: #b45309; }
+.list-badge.collaborator { background: #ede9fe; color: #6d28d9; }
+.list-badge.public { background: #d1fae5; color: #059669; }
+.list-badge.private { background: #fef3c7; color: #b45309; }
+.list-badge.priority-low { background: #f3f4f6; color: #4b5563; }
+.list-badge.priority-medium { background: #fef3c7; color: #f59e0b; }
+.list-badge.priority-high { background: #fee2e2; color: #ef4444; }
 
 /* Actions (buttons/links) */
 .list-actions {

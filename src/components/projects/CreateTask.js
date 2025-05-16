@@ -66,7 +66,7 @@ export default function CreateTask() {
     setError('');
 
     if (!formData.name.trim()) {
-      return setError('Görev adı boş olamaz');
+      return setError('Task name cannot be empty');
     }
 
     try {
@@ -93,7 +93,7 @@ export default function CreateTask() {
 
       navigate(`/projects/${projectId}`);
     } catch (err) {
-      setError(`Görev oluşturulurken bir hata oluştu: ${err.message}`);
+      setError(`An error occurred while creating the task: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -107,9 +107,9 @@ export default function CreateTask() {
             <svg xmlns="http://www.w3.org/2000/svg" className="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Geri
+            Back
           </button>
-          <h1 className="project-title">Yeni Görev Oluştur</h1>
+          <h1 className="project-title">Create New Task</h1>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default function CreateTask() {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name" className="form-label">Görev Adı</label>
+            <label htmlFor="name" className="form-label">Task Name</label>
             <input
               type="text"
               id="name"
@@ -131,7 +131,7 @@ export default function CreateTask() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="description" className="form-label">Açıklama</label>
+            <label htmlFor="description" className="form-label">Description</label>
             <textarea
               id="description"
               name="description"
@@ -139,12 +139,12 @@ export default function CreateTask() {
               onChange={handleChange}
               rows="4"
               className="form-control"
-              placeholder="Bu görev hakkında açıklama yazın (isteğe bağlı)"
+              placeholder="Write a description about this task (optional)"
             ></textarea>
           </div>
 
           <div className="form-group">
-            <label htmlFor="dueDate" className="form-label">Son Tarih</label>
+            <label htmlFor="dueDate" className="form-label">Due Date</label>
             <input
               type="date"
               id="dueDate"
@@ -156,7 +156,7 @@ export default function CreateTask() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Öncelik</label>
+            <label className="form-label">Priority</label>
             <div className="radio-group">
               <div className="radio-option">
                 <input
@@ -169,7 +169,7 @@ export default function CreateTask() {
                   className="radio-input"
                 />
                 <label htmlFor="priority-low" className="radio-label">
-                  <div className="radio-label-title">Düşük</div>
+                  <div className="radio-label-title">Low</div>
                 </label>
               </div>
               <div className="radio-option">
@@ -183,7 +183,7 @@ export default function CreateTask() {
                   className="radio-input"
                 />
                 <label htmlFor="priority-medium" className="radio-label">
-                  <div className="radio-label-title">Orta</div>
+                  <div className="radio-label-title">Medium</div>
                 </label>
               </div>
               <div className="radio-option">
@@ -197,7 +197,7 @@ export default function CreateTask() {
                   className="radio-input"
                 />
                 <label htmlFor="priority-high" className="radio-label">
-                  <div className="radio-label-title">Yüksek</div>
+                  <div className="radio-label-title">High</div>
                 </label>
               </div>
             </div>
@@ -209,14 +209,14 @@ export default function CreateTask() {
               onClick={() => navigate(`/projects/${projectId}`)}
               className="btn-cancel"
             >
-              İptal
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="btn-submit"
             >
-              {isSubmitting ? 'Oluşturuluyor...' : 'Görev Oluştur'}
+              {isSubmitting ? 'Creating...' : 'Create Task'}
             </button>
           </div>
         </form>

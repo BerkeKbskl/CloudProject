@@ -76,12 +76,12 @@
 
 /* Header */
 .project-header {
-  max-width: 1000px;  /* match project-details width */
-  margin: 2rem auto 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 var(--space-4);
+    max-width: 100%;
+    margin: 2rem auto 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0 var(--space-4);
 }
 
 .header-left {

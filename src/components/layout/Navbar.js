@@ -3,6 +3,17 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './Navbar.css';
 
+// English only translations
+const t = {
+  login: "Login",
+  signup: "Sign Up",
+  logout: "Log Out",
+  dashboard: "Dashboard",
+  home: "Home",
+  user: "User",
+  projectTool: "Project Management Tool"
+};
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { currentUser, logout } = useAuth();
@@ -28,15 +39,17 @@ export default function Navbar() {
     if (isHomePage) {
       return (
         <>
-          <Link to="/login" className="navbar-link">Login</Link>
-          <Link to="/register" className="navbar-button navbar-button-signup">Sign Up</Link>
+          <Link to="/login" className="navbar-link">{t.login}</Link>
+          <Link to="/register" className="navbar-button navbar-button-signup">{t.signup}</Link>
         </>
       );
     }
 
     if (isAuthPage) {
       return (
-        <Link to="/" className="navbar-link">Home</Link>
+        <>
+          <Link to="/" className="navbar-link">{t.home}</Link>
+        </>
       );
     }
 
@@ -44,9 +57,9 @@ export default function Navbar() {
       return (
         <>
           {!isDashboard && (
-            <Link to="/dashboard" className="navbar-link">Dashboard</Link>
+            <Link to="/dashboard" className="navbar-link">{t.dashboard}</Link>
           )}
-          <button onClick={handleLogout} className="navbar-button navbar-button-logout">Log Out</button>
+          <button onClick={handleLogout} className="navbar-button navbar-button-logout">{t.logout}</button>
           <button
             className="navbar-user-button"
             onClick={() => navigate(`/user/${currentUser.uid}`)}
@@ -54,7 +67,7 @@ export default function Navbar() {
             <div className="avatar small">
               {currentUser.displayName?.charAt(0).toUpperCase() || '?'}
             </div>
-            <span className="user-name">{currentUser.displayName || 'User'}</span>
+            <span className="user-name">{currentUser.displayName || t.user}</span>
           </button>
         </>
       );
@@ -67,15 +80,17 @@ export default function Navbar() {
     if (isHomePage) {
       return (
         <>
-          <Link to="/login" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>Login</Link>
-          <Link to="/register" className="navbar-mobile-button" onClick={() => setMenuOpen(false)}>Sign Up</Link>
+          <Link to="/login" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>{t.login}</Link>
+          <Link to="/register" className="navbar-mobile-button" onClick={() => setMenuOpen(false)}>{t.signup}</Link>
         </>
       );
     }
 
     if (isAuthPage) {
       return (
-        <Link to="/" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>Home</Link>
+        <>
+          <Link to="/" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>{t.home}</Link>
+        </>
       );
     }
 
@@ -83,14 +98,14 @@ export default function Navbar() {
       return (
         <>
           {!isDashboard && (
-            <Link to="/dashboard" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            <Link to="/dashboard" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>{t.dashboard}</Link>
           )}
-          <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="navbar-mobile-button">Log Out</button>
+          <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="navbar-mobile-button">{t.logout}</button>
           <button
             className="navbar-mobile-button"
             onClick={() => { navigate('/user'); setMenuOpen(false); }}
           >
-            {currentUser.displayName || 'User'}
+            {currentUser.displayName || t.user}
           </button>
         </>
       );
@@ -107,7 +122,7 @@ export default function Navbar() {
             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
             <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
           </svg>
-          <span className="navbar-logo-text">Project Management Tool</span>
+          <span className="navbar-logo-text">{t.projectTool}</span>
         </Link>
 
         <div className="navbar-links">

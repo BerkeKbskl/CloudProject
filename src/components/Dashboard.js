@@ -26,9 +26,7 @@ export default function Dashboard() {
 
   return (
     <div className={`dashboard ${isLoading ? 'loading' : 'loaded'}`}>
-      <div className="dev-signature">
-        Developed by Berke Kabasakal
-      </div>
+
       <div className="dashboard-header">
         <div className="user-welcome">
           <span>Welcome, {currentUser ? (currentUser.displayName || currentUser.email) : 'Guest'}</span>
@@ -47,7 +45,7 @@ export default function Dashboard() {
         <div className="search-input-wrapper">
           <input
             type="text"
-            placeholder="Proje ara..."
+            placeholder="Search projects..."
             value={searchTerm}
             onChange={handleSearchChange}
             className="search-input"
@@ -68,7 +66,7 @@ export default function Dashboard() {
         )}
       </div>
       <div className="dashboard-footer">
-        <p>&copy; 2023 Proje Yönetim Uygulaması</p>
+        <p>&copy; 2023 Project Management App — Berke Kabasakal & Ferhat Onur Özgan</p>
       </div>  
     </div>
   );

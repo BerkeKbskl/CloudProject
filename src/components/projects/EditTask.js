@@ -26,7 +26,7 @@ export default function EditTask() {
         const taskRef = doc(db, 'tasks', taskId);
         const taskSnap = await getDoc(taskRef);
         if (!taskSnap.exists()) {
-          setError('Görev bulunamadı');
+          setError('Task not found');
           return;
         }
         const taskData = taskSnap.data();
@@ -40,7 +40,7 @@ export default function EditTask() {
         });
         setProjectId(taskData.projectId);
       } catch (err) {
-        setError(`Görev yüklenirken bir hata oluştu: ${err.message}`);
+        setError(`An error occurred while loading the task: ${err.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -71,7 +71,7 @@ export default function EditTask() {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      setError('Görev adı boş olamaz');
+      setError('Task name cannot be empty');
       return;
     }
 
@@ -93,14 +93,14 @@ export default function EditTask() {
       sessionStorage.setItem('navigatingFromTask', 'true');
       navigate(-1);
     } catch (err) {
-      setError(`Görev güncellenirken bir hata oluştu: ${err.message}`);
+      setError(`An error occurred while updating the task: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
-    return <div className="loading">Görev verileri yükleniyor...</div>;
+    return <div className="loading">Loading task data...</div>;
   }
 
   return (
@@ -114,9 +114,9 @@ export default function EditTask() {
             <svg xmlns="http://www.w3.org/2000/svg" className="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Geri
+            Back
           </button>
-          <h1 className="project-title">Görevi Düzenle</h1>
+          <h1 className="project-title">Edit Task</h1>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export default function EditTask() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name" className="form-label">Görev Adı</label>
+            <label htmlFor="name" className="form-label">Task Name</label>
             <input
               type="text"
               id="name"
@@ -138,7 +138,7 @@ export default function EditTask() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="description" className="form-label">Açıklama</label>
+            <label htmlFor="description" className="form-label">Description</label>
             <textarea
               id="description"
               name="description"
@@ -146,12 +146,12 @@ export default function EditTask() {
               onChange={handleInputChange}
               rows="4"
               className="form-control"
-              placeholder="Bu görev hakkında açıklama yazın (isteğe bağlı)"
+              placeholder="Write a description about this task (optional)"
             ></textarea>
           </div>
 
           <div className="form-group">
-            <label htmlFor="dueDate" className="form-label">Son Tarih</label>
+            <label htmlFor="dueDate" className="form-label">Due Date</label>
             <input
               type="date"
               id="dueDate"
@@ -163,7 +163,7 @@ export default function EditTask() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Öncelik</label>
+            <label className="form-label">Priority</label>
             <div className="radio-group">
               <div className="radio-option">
                 <input
@@ -176,7 +176,7 @@ export default function EditTask() {
                   className="radio-input"
                 />
                 <label htmlFor="priority-low" className="radio-label">
-                  <div className="radio-label-title">Düşük</div>
+                  <div className="radio-label-title">Low</div>
                 </label>
               </div>
               <div className="radio-option">
@@ -190,7 +190,7 @@ export default function EditTask() {
                   className="radio-input"
                 />
                 <label htmlFor="priority-medium" className="radio-label">
-                  <div className="radio-label-title">Orta</div>
+                  <div className="radio-label-title">Medium</div>
                 </label>
               </div>
               <div className="radio-option">
@@ -204,7 +204,7 @@ export default function EditTask() {
                   className="radio-input"
                 />
                 <label htmlFor="priority-high" className="radio-label">
-                  <div className="radio-label-title">Yüksek</div>
+                  <div className="radio-label-title">High</div>
                 </label>
               </div>
             </div>
@@ -219,14 +219,14 @@ export default function EditTask() {
               }}
               className="btn-cancel"
             >
-              İptal
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="btn-submit"
             >
-              {isSubmitting ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

@@ -35,10 +35,10 @@ export default function ViewTask() {
             updatedAt: taskData.updatedAt || null
           });
         } else {
-          setError('Görev bulunamadı');
+          setError('Task not found');
         }
       } catch (err) {
-        setError(`Görev yüklenirken hata oluştu: ${err.message}`);
+        setError(`An error occurred while loading the task: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -66,7 +66,7 @@ export default function ViewTask() {
       await updateDoc(taskRef, { subtasks: updatedSubtasks });
       return true;
     } catch (err) {
-      console.error('Alt görevleri güncellerken hata:', err);
+      console.error('Error updating subtasks:', err);
       return false;
     }
   };
@@ -102,7 +102,7 @@ export default function ViewTask() {
   };
 
   const handleAddSubtask = async () => {
-    const subtaskName = prompt('Yeni alt görevin adını girin:');
+    const subtaskName = prompt('Enter the name of the new subtask:');
     if (!subtaskName?.trim()) return;
 
     const newSubtask = { name: subtaskName.trim(), completed: false };
@@ -116,7 +116,7 @@ export default function ViewTask() {
   };
 
   const handleRemoveSubtask = async (index) => {
-    if (!window.confirm('Bu alt görevi silmek istediğinizden emin misiniz?')) {
+    if (!window.confirm('Are you sure you want to delete this subtask?')) {
       return;
     }
 
@@ -129,11 +129,11 @@ export default function ViewTask() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Belirtilmemiş';
+    if (!dateString) return 'Not specified';
 
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('tr-TR', {
+      return date.toLocaleDateString('en-US', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -141,11 +141,22 @@ export default function ViewTask() {
         minute: '2-digit'
       });
     } catch (err) {
-      return 'Geçersiz tarih';
+      return 'Invalid date';
     }
   };
 
-  if (loading) return <div className="loading">Görev yükleniyor...</div>;
+  const getPriorityBadgeClass = () => {
+    if (task.priority?.toLowerCase() === 'low') return 'badge-priority-low';
+    if (task.priority?.toLowerCase() === 'medium') return 'badge-priority-medium';
+    if (task.priority?.toLowerCase() === 'high') return 'badge-priority-high';
+    return '';
+  };
+
+  const getStatusBadgeClass = () => {
+    return task.completed ? 'badge-status-completed' : 'badge-status-pending';
+  };
+
+  if (loading) return <div className="loading">Loading task...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
   const completionPercentage = calculateCompletionPercentage(task.subtasks);
@@ -159,11 +170,11 @@ export default function ViewTask() {
               <svg xmlns="http://www.w3.org/2000/svg" className="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Geri
+              Back
             </button>
             <h1 className="project-title">{task.name}</h1>
-            <span className={`status-badge ${task.completed ? 'completed' : 'pending'}`}>
-              {task.completed ? 'Tamamlandı' : 'Devam Ediyor'}
+            <span className={`status-badge ${getStatusBadgeClass()}`}>
+              {task.completed ? 'Completed' : 'In Progress'}
             </span>
           </div>
         </div>
@@ -172,12 +183,12 @@ export default function ViewTask() {
           <div className="task-metadata">
             <div className="meta-dates">
               <div className="metadata-item">
-                <span className="metadata-label">Oluşturulma:</span>
+                <span className="metadata-label">Created:</span>
                 <span>{formatDate(task.createdAt?.toDate())}</span>
               </div>
               {task.updatedAt && (
                 <div className="metadata-item">
-                  <span className="metadata-label">Son Güncelleme:</span>
+                  <span className="metadata-label">Last Update:</span>
                   <span>{formatDate(task.updatedAt?.toDate())}</span>
                 </div>
               )}
@@ -187,10 +198,10 @@ export default function ViewTask() {
                 onClick={handleToggleTaskCompletion}
                 className={`btn ${task.completed ? 'btn-incomplete' : 'btn-complete'}`}
               >
-                {task.completed ? 'Tamamlanmadı İşaretle' : 'Tamamlandı İşaretle'}
+                {task.completed ? 'Mark as Incomplete' : 'Mark as Completed'}
               </button>
               <Link to={`/projects/${task.projectId}/tasks/${task.id}/edit`} className="btn btn-edit">
-                Görevi Düzenle
+                Edit Task
               </Link>
             </div>
           </div>
@@ -198,21 +209,21 @@ export default function ViewTask() {
           <div className="view-task-details">
             {task.description && (
               <div className="detail-item">
-                <h3 className="project-section-title">Açıklama</h3>
+                <h3 className="project-section-title">Description</h3>
                 <p className="project-description">{task.description}</p>
               </div>
             )}
 
             <div className="detail-item">
-              <h3 className="project-section-title">Detaylar</h3>
+              <h3 className="project-section-title">Details</h3>
               <div className="metadata-items">
                 <div className="metadata-item">
-                  <span className="metadata-label">Son Tarih:</span>
+                  <span className="metadata-label">Due Date:</span>
                   <span>{formatDate(task.dueDate)}</span>
                 </div>
                 <div className="metadata-item">
-                  <span className="metadata-label">Öncelik:</span>
-                  <span className={`priority-badge priority-${task.priority?.toLowerCase() || 'normal'}`}>
+                  <span className="metadata-label">Priority:</span>
+                  <span className={`priority-badge ${getPriorityBadgeClass()}`}>
                     {task.priority || 'Normal'}
                   </span>
                 </div>
@@ -220,7 +231,7 @@ export default function ViewTask() {
               
               <div className="progress-container">
                 <div className="progress-label">
-                  <span>İlerleme</span>
+                  <span>Progress</span>
                   <span>{completionPercentage}%</span>
                 </div>
                 <div className="progress-bar">
@@ -234,13 +245,13 @@ export default function ViewTask() {
 
             <section className="detail-item">
               <div className="subtasks-header">
-                <h3>Alt Görevler</h3>
+                <h3>Subtasks</h3>
                 <button onClick={handleAddSubtask} className="btn btn-add">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  Alt Görev Ekle
+                  Add Subtask
                 </button>
               </div>
 
@@ -266,7 +277,7 @@ export default function ViewTask() {
                       <button
                         onClick={() => handleRemoveSubtask(index)}
                         className="btn btn-remove"
-                        title="Alt görevi sil"
+                        title="Delete subtask"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -277,7 +288,7 @@ export default function ViewTask() {
                   ))}
                 </ul>
               ) : (
-                <p className="no-subtasks">Henüz alt görev eklenmemiş.</p>
+                <p className="no-subtasks">No subtasks have been added yet.</p>
               )}
             </section>
           </div>

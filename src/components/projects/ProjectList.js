@@ -68,7 +68,7 @@ export default function ProjectList({ searchTerm = '' }) {
         <div className="loading-spinner">
           <div className="spinner"></div>
         </div>
-        <p>Projeler yükleniyor...</p>
+        <p>Loading projects...</p>
       </div>
     );
   }
@@ -76,12 +76,12 @@ export default function ProjectList({ searchTerm = '' }) {
   if (error) {
     return (
       <div className="projects-error">
-        <p>Projeler yüklenirken bir hata oluştu: {error}</p>
+        <p>An error occurred while loading projects: {error}</p>
         <button 
           className="retry-button"
           onClick={() => fetchProjects()}
         >
-          Tekrar Dene
+          Try Again
         </button>
       </div>
     );
@@ -98,19 +98,19 @@ export default function ProjectList({ searchTerm = '' }) {
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            Tümü
+            All
           </button>
           <button 
             className={`filter-btn ${filter === 'public' ? 'active' : ''}`}
             onClick={() => setFilter('public')}
           >
-            Herkese Açık
+            Public
           </button>
           <button 
             className={`filter-btn ${filter === 'private' ? 'active' : ''}`}
             onClick={() => setFilter('private')}
           >
-            Özel
+            Private
           </button>
         </div>
       )}
@@ -123,10 +123,10 @@ export default function ProjectList({ searchTerm = '' }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2,2z" />
             </svg>
           </div>
-          <h3>Henüz hiç projeniz yok</h3>
-          <p>Yeni bir proje oluşturarak başlayın</p>
+          <h3>You don't have any projects yet</h3>
+          <p>Start by creating a new project</p>
           <Link to="/projects/create" className="start-project-btn">
-            İlk Projenizi Oluşturun
+            Create Your First Project
           </Link>
         </div>
       ) : noSearchResults ? (
@@ -137,8 +137,8 @@ export default function ProjectList({ searchTerm = '' }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3>Arama sonucu bulunamadı</h3>
-          <p>"{searchTerm}" ile eşleşen proje bulunamadı</p>
+          <h3>No search results found</h3>
+          <p>No projects matched "{searchTerm}"</p>
         </div>
       ) : (
         // Display project list
@@ -158,7 +158,7 @@ export default function ProjectList({ searchTerm = '' }) {
       {publicProjects.length > 0 && !noSearchResults && (
         <div className="public-projects-section">
           <div className="public-projects-header">
-            <h2>Keşfet: Herkese Açık Projeler</h2>
+            <h2>Discover: Public Projects</h2>
             <button 
               onClick={() => setShowPublicProjects(!showPublicProjects)}
               className="toggle-public-btn"
@@ -168,14 +168,14 @@ export default function ProjectList({ searchTerm = '' }) {
                   <svg xmlns="http://www.w3.org/2000/svg" className="toggle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                   </svg>
-                  Gizle
+                  Hide
                 </>
               ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" className="toggle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  Keşfet ({sortedPublicProjects.length})
+                  Discover ({sortedPublicProjects.length})
                 </>
               )}
             </button>
@@ -194,11 +194,11 @@ export default function ProjectList({ searchTerm = '' }) {
               </div>
             ) : searchTerm ? (
               <div className="empty-search-results small">
-                <p>"{searchTerm}" ile eşleşen herkese açık proje bulunamadı</p>
+                <p>No public projects matched "{searchTerm}"</p>
               </div>
             ) : (
               <div className="empty-search-results small">
-                <p>Henüz herkese açık proje bulunamadı</p>
+                <p>No public projects found yet</p>
               </div>
             )
           )}

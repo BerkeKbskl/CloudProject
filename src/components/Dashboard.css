@@ -208,6 +208,18 @@
   }
 }
 
+.empty-projects-icon svg,
+.empty-search-icon svg {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  min-width: 2.5rem !important;
+  min-height: 2.5rem !important;
+  max-width: 2.5rem !important;
+  max-height: 2.5rem !important;
+  display: block;
+  margin: 0 auto;
+}
+
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;

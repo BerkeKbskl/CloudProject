@@ -70,7 +70,7 @@ export default function ProjectDetails() {
         const isPublic = projectData.visibility === 'public';
 
         if (!isOwner && !isCollaborator && !isPublic) {
-          setError('Bu projeye erişim izniniz yok.');
+          setError('You do not have access to this project.');
           setProject(null);
           return;
         }
@@ -85,11 +85,11 @@ export default function ProjectDetails() {
           visibility: projectData.visibility
         });
       } else {
-        setError('Proje bulunamadı.');
+        setError('Project not found.');
         setProject(null);
       }
     } catch (err) {
-      setError('Proje yüklenirken bir hata oluştu: ' + err.message);
+      setError('An error occurred while loading the project: ' + err.message);
       console.error("Error fetching project:", err);
     } finally {
       setLoading(false);
@@ -155,7 +155,7 @@ export default function ProjectDetails() {
       fetchTasks();
     } else {
       setLoading(false);
-      setError('Bu sayfayı görüntülemek için oturum açmanız gerekiyor.');
+      setError('You need to log in to view this page.');
     }
   }, [currentUser, fetchProjectDetails, fetchTasks]);
   const [hasFocus, setHasFocus] = useState(false);
@@ -185,7 +185,7 @@ export default function ProjectDetails() {
       fetchTasks();
     } else {
       setLoading(false);
-      setError('Bu sayfayı görüntülemek için oturum açmanız gerekiyor.');
+      setError('You need to log in to view this page.');
     }
   }, [currentUser, fetchProjectDetails, fetchTasks]);
 
@@ -202,13 +202,13 @@ export default function ProjectDetails() {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Bu projeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       try {
         setIsSubmitting(true);
         await deleteProject(projectId);
         navigate('/dashboard', { replace: true });
       } catch (err) {
-        setError('Proje silinirken bir hata oluştu: ' + err.message);
+        setError('An error occurred while deleting the project: ' + err.message);
       } finally {
         setIsSubmitting(false);
       }
@@ -219,7 +219,7 @@ export default function ProjectDetails() {
     e.preventDefault();
 
     if (!editName.trim()) {
-      return setError('Proje adı boş olamaz');
+      return setError('Project name cannot be empty');
     }
 
     try {
@@ -242,7 +242,7 @@ export default function ProjectDetails() {
 
       setIsEditing(false);
     } catch (err) {
-      setError('Proje güncellenirken bir hata oluştu: ' + err.message);
+      setError('An error occurred while updating the project: ' + err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -254,11 +254,11 @@ export default function ProjectDetails() {
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp) return 'Tarih yok';
+    if (!timestamp) return 'No date';
 
     try {
       const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
-      return new Intl.DateTimeFormat('tr-TR', {
+      return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -267,7 +267,7 @@ export default function ProjectDetails() {
       }).format(date);
     } catch (error) {
       console.error("Date formatting error:", error);
-      return 'Geçersiz tarih';
+      return 'Invalid date';
     }
   };
 
@@ -301,7 +301,7 @@ export default function ProjectDetails() {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
-          Panele Dön
+          Return to Dashboard
         </Link>
       </div>
     );
@@ -310,9 +310,9 @@ export default function ProjectDetails() {
   if (!project) {
     return (
       <div className="empty-state">
-        <p className="empty-state-text">Proje bulunamadı.</p>
+        <p className="empty-state-text">Project not found.</p>
         <Link to="/dashboard" className="empty-state-link">
-          Panele Dön
+          Return to Dashboard
         </Link>
       </div>
     );
@@ -328,11 +328,11 @@ export default function ProjectDetails() {
             <svg xmlns="http://www.w3.org/2000/svg" className="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Geri
+            Back
           </button>
           <h1 className="project-title">{project.name}</h1>
           <span className={`badge badge-visibility ${project.visibility}`}>
-            {project.visibility === 'public' ? 'Herkese Açık' : 'Özel'}
+            {project.visibility === 'public' ? 'Public' : 'Private'}
           </span>
         </div>
       </div>
@@ -340,9 +340,9 @@ export default function ProjectDetails() {
       <div className="project-content">
         <div className="project-meta">
           <div className="meta-dates">
-            <span>Oluşturulma: {formatDate(project.createdAt)}</span>
+            <span>Created: {formatDate(project.createdAt)}</span>
             {project.updatedAt && project.updatedAt !== project.createdAt && (
-              <span> • Güncellenme: {formatDate(project.updatedAt)}</span>
+              <span> • Updated: {formatDate(project.updatedAt)}</span>
             )}
           </div>
           {canEdit && (
@@ -352,7 +352,7 @@ export default function ProjectDetails() {
                 className="form-btn form-btn-secondary"
                 disabled={isSubmitting}
               >
-                Düzenle
+                Edit
               </button>
               {project.isOwner && (
                 <button
@@ -360,7 +360,7 @@ export default function ProjectDetails() {
                   className="form-btn form-btn-danger"
                   disabled={isSubmitting}
                 >
-                  Sil
+                  Delete
                 </button>
               )}
             </div>
@@ -369,15 +369,15 @@ export default function ProjectDetails() {
 
         <div className="project-card">
           <div className="project-body">
-            <h3 className="project-section-title">Açıklama</h3>
+            <h3 className="project-section-title">Description</h3>
             <p className="project-description">
-              {project.description || 'Bu proje için bir açıklama eklenmemiş.'}
+              {project.description || 'No description has been added for this project.'}
             </p>
           </div>
 
           {project.isOwner && (
             <div className="project-body">
-              <h3 className="project-section-title">Proje Ekibi</h3>
+              <h3 className="project-section-title">Project Team</h3>
               <CollaboratorsList
                 projectId={project.id}
                 collaborators={project.collaborators || []}
@@ -388,21 +388,21 @@ export default function ProjectDetails() {
           )}
 
           <div className="project-body">
-            <h3 className="project-section-title">Görevler</h3>
+            <h3 className="project-section-title">Tasks</h3>
             {canEdit && (
               <button
                 onClick={() => {
-                  console.debug('Yeni Görev Ekle button clicked');
+                  console.debug('Add New Task button clicked');
                   sessionStorage.setItem('prevTaskCount', tasks.length);
                   navigate(`/projects/${projectId}/tasks/create`);
                 }}
                 className="btn btn-create-task"
               >
-                Yeni Görev Ekle
+                Add New Task
               </button>
             )}
             {tasksLoading ? (
-              <p>Görevler yükleniyor...</p>
+              <p>Loading tasks...</p>
             ) : tasks.length > 0 ? (
               <ul className="task-list">
                 {tasks.map(task => (
@@ -419,7 +419,7 @@ export default function ProjectDetails() {
                 ))}
               </ul>
             ) : (
-              <p>Bu proje için henüz görev eklenmemiş.</p>
+              <p>No tasks have been added to this project yet.</p>
             )}
           </div>
 
@@ -428,7 +428,7 @@ export default function ProjectDetails() {
           </div>
 
           <div className="project-footer">
-            <span className="project-id">Proje ID: {project.id}</span>
+            <span className="project-id">Project ID: {project.id}</span>
           </div>
         </div>
       </div>

@@ -92,96 +92,58 @@
   gap: 0.75rem;
 }
 
-.project-header .status-badge {
-  margin-left: var(--space-4);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.task-actions {
-  display: flex;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
-}
-
-.priority-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.priority-high {
-  background-color: var(--color-red-100);
-  color: var(--color-red-700);
-}
-
-.priority-medium, .priority-normal {
-  background-color: var(--color-amber-100);
-  color: var(--color-amber-600);
-}
-
-.priority-low {
-  background-color: var(--color-green-100);
-  color: var(--color-green-700);
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-badge.completed {
-  background-color: var(--success-100);
-  color: var(--success-600);
-}
-
-.status-badge.pending {
-  background-color: var(--warning-100);
-  color: var(--warning-600);
-}
-
 /* Override project header for ViewTask */
 .project-header {
   max-width: 1000px;  /* match project-details width */
   margin: 2rem auto 1rem;
 }
 
-/* Add back badge colors */
-.status-badge {
+/* Consistent badge styling with ProjectDetails */
+.badge,
+.badge-priority-low,
+.badge-priority-medium,
+.badge-priority-high,
+.badge-status-completed,
+.badge-status-pending,
+.badge-status-public,
+.badge-status-private {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 600;
+  padding: var(--space-1, 0.25rem) var(--space-3, 0.75rem);
   text-transform: uppercase;
+  letter-spacing: 0.025rem;
+  line-height: 1;
+  white-space: nowrap;
+  gap: 0.375rem;
 }
 
-.status-badge.public {
-  background-color: var(--success-100);
-  color: var(--success-600);
+/* Priority badges */
+.badge-priority-low {
+  background: var(--gray-100, #f3f4f6);
+  color: var(--gray-600, #4b5563);
+}
+.badge-priority-medium {
+  background: var(--warning-light, #fef3c7);
+  color: var(--warning, #f59e0b);
+}
+.badge-priority-high {
+  background: var(--danger-light, #fee2e2);
+  color: var(--danger, #ef4444);
 }
 
-.status-badge.private {
-  background-color: var(--warning-100);
-  color: var(--warning-600);
+/* Status badges */
+.badge-status-completed,
+.badge-status-public {
+  background: var(--success-light, #d1fae5);
+  color: var(--success, #10b981);
 }
-
-.status-badge.completed {
-  background-color: var(--success-100);
-  color: var(--success-600);
-}
-
-.status-badge.pending {
-  background-color: var(--warning-100);
-  color: var(--warning-600);
+.badge-status-pending,
+.badge-status-private {
+  background: var(--warning-light, #fef3c7);
+  color: var(--warning, #f59e0b);
 }
 
 /* Progress Bar */

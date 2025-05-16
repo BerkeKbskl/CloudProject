@@ -38,7 +38,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
               id: ownerSnap.id,
               ...ownerData,
               isOwner: true, // Mark as owner
-              role: 'Proje Sahibi' // Add role
+              role: 'Project Owner' // Add role
             });
             
             // Add owner email to the set
@@ -64,7 +64,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
                 id: userSnap.id,
                 ...userData,
                 isOwner: false,
-                role: typeof collab === 'object' && collab.role ? collab.role : 'Üye' // Use role if available
+                role: typeof collab === 'object' && collab.role ? collab.role : 'Member' // Use role if available
               });
               
               // Add collaborator email to the set
@@ -79,7 +79,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
         setExistingEmails(emailSet);
       } catch (err) {
         console.error('Error fetching collaborators:', err);
-        setError('Ekip üyeleri yüklenemedi.');
+        setError('Failed to load team members.');
       } finally {
         setLoading(false);
       }
@@ -94,12 +94,12 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
     const trimmedEmail = newCollaboratorEmail.trim().toLowerCase();
     
     if (!trimmedEmail) {
-      return setError('Lütfen bir e-posta adresi girin');
+      return setError('Please enter an email address');
     }
 
     // Check if the email is already in the project
     if (existingEmails.has(trimmedEmail)) {
-      return setError('Bu e-posta adresi zaten projede bulunuyor');
+      return setError('This email address is already in the project');
     }
 
     try {
@@ -111,7 +111,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        return setError('Bu e-posta adresine sahip bir kullanıcı bulunamadı');
+        return setError('No user found with this email address');
       }
 
       const userDoc = querySnapshot.docs[0];
@@ -125,7 +125,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
       );
 
       if (isAlreadyCollaborator || userId === ownerId) {
-        return setError('Bu kullanıcı zaten projede ekli');
+        return setError('This user is already in the project');
       }
 
       await addCollaborator(projectId, userId);
@@ -138,14 +138,14 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
         onCollaboratorUpdated();
       }
     } catch (err) {
-      setError('Bir hata oluştu: ' + err.message);
+      setError('An error occurred: ' + err.message);
     } finally {
       setAddingCollaborator(false);
     }
   };
 
   const handleRemoveCollaborator = async (userId, email) => {
-    if (window.confirm('Bu kullanıcıyı projeden çıkarmak istediğinizden emin misiniz?')) {
+    if (window.confirm('Are you sure you want to remove this user from the project?')) {
       try {
         await removeCollaborator(projectId, userId);
         
@@ -161,7 +161,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
           onCollaboratorUpdated();
         }
       } catch (err) {
-        setError('Kullanıcı çıkarılırken bir hata oluştu: ' + err.message);
+        setError('An error occurred while removing the user: ' + err.message);
       }
     }
   };
@@ -171,7 +171,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
       <form onSubmit={handleAddCollaborator} className="collab-form">
         <input
           type="email"
-          placeholder="Kullanıcı E-posta Adresi"
+          placeholder="User Email Address"
           value={newCollaboratorEmail}
           onChange={(e) => setNewCollaboratorEmail(e.target.value)}
           className="form-input"
@@ -181,14 +181,14 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
           disabled={addingCollaborator}
           className="form-btn form-btn-primary"
         >
-          {addingCollaborator ? 'Ekleniyor...' : 'Ekle'}
+          {addingCollaborator ? 'Adding...' : 'Add'}
         </button>
       </form>
       {error && <p className="form-error">{error}</p>}
       {loading ? (
-        <div className="collaborators-loading">Yükleniyor...</div>
+        <div className="collaborators-loading">Loading...</div>
       ) : collaboratorUsers.length === 0 ? (
-        <p className="collaborators-empty">Henüz bu projeye eklenmiş kullanıcı yok</p>
+        <p className="collaborators-empty">No users have been added to this project yet</p>
       ) : (
         <ul className="list">
           {collaboratorUsers.map((user) => (
@@ -202,9 +202,9 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
               </div>
               <div className="list-main">
                 <span className="list-title">
-                  {user.displayName || 'İsimsiz Kullanıcı'}
+                  {user.displayName || 'Unnamed User'}
                   <span className={`list-badge ${user.isOwner ? 'owner' : 'collaborator'}`}>
-                    {user.role || (user.isOwner ? 'Proje Sahibi' : 'Üye')}
+                    {user.role || (user.isOwner ? 'Project Owner' : 'Member')}
                   </span>
                 </span>
                 <span className="list-desc">{user.email}</span>
@@ -218,7 +218,7 @@ export default function CollaboratorsList({ projectId, collaborators = [], owner
                     }}
                     className="list-action-btn delete"
                   >
-                    Çıkar
+                    Remove
                   </button>
                 </div>
               )}

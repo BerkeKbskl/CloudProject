@@ -31,18 +31,18 @@ export default function CreateProject() {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      return setError('Proje adı boş olamaz');
+      return setError('Project name cannot be empty');
     }
     
     try {
       setError('');
       setLoading(true);
       
-      // Projeyi oluşturan kişiyi collaborators listesine ekle
+      // Add the creator to the collaborators list
       const collaborators = [{
         userId: currentUser.uid,
         email: currentUser.email,
-        role: 'Proje Sahibi', // Ünvan: Proje Sahibi
+        role: 'Project Owner',
         addedAt: new Date()
       }];
       
@@ -50,13 +50,13 @@ export default function CreateProject() {
         name: formData.name,
         description: formData.description,
         visibility: formData.visibility,
-        ownerId: currentUser.uid, // Owner ID'yi ekle
-        collaborators: collaborators // Collaborators listesini ekle
+        ownerId: currentUser.uid,
+        collaborators: collaborators
       });
       
       navigate(`/projects/${newProject.id}`);
     } catch (error) {
-      setError('Proje oluşturulamadı: ' + error.message);
+      setError('Project could not be created: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -70,9 +70,9 @@ export default function CreateProject() {
             <svg xmlns="http://www.w3.org/2000/svg" className="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Geri
+            Back
           </button>
-          <h1 className="project-title">Yeni Proje Oluştur</h1>
+          <h1 className="project-title">Create New Project</h1>
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default function CreateProject() {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name" className="form-label">Proje Adı</label>
+            <label htmlFor="name" className="form-label">Project Name</label>
             <input
               type="text"
               id="name"
@@ -94,7 +94,7 @@ export default function CreateProject() {
           </div>
           
           <div className="form-group">
-            <label htmlFor="description" className="form-label">Açıklama</label>
+            <label htmlFor="description" className="form-label">Description</label>
             <textarea
               id="description"
               name="description"
@@ -102,12 +102,12 @@ export default function CreateProject() {
               onChange={handleChange}
               rows="4"
               className="form-control"
-              placeholder="Bu proje hakkında açıklama yazın (isteğe bağlı)"
+              placeholder="Write a description about this project (optional)"
             ></textarea>
           </div>
           
           <div className="form-group">
-            <label className="form-label">Görünürlük</label>
+            <label className="form-label">Visibility</label>
             <div className="radio-group">
               <div className="radio-option">
                 <input
@@ -120,9 +120,9 @@ export default function CreateProject() {
                   className="radio-input"
                 />
                 <label htmlFor="private" className="radio-label">
-                  <div className="radio-label-title">Özel</div>
+                  <div className="radio-label-title">Private</div>
                   <div className="radio-label-description">
-                    Sadece siz ve davet ettiğiniz kişiler görebilir ve düzenleyebilir
+                    Only you and invited users can view and edit
                   </div>
                 </label>
               </div>
@@ -137,9 +137,9 @@ export default function CreateProject() {
                   className="radio-input"
                 />
                 <label htmlFor="public" className="radio-label">
-                  <div className="radio-label-title">Herkese açık</div>
+                  <div className="radio-label-title">Public</div>
                   <div className="radio-label-description">
-                    Herkes bu projeyi görüntüleyebilir, sadece izin verilenler düzenleyebilir
+                    Everyone can view this project, only allowed users can edit
                   </div>
                 </label>
               </div>
@@ -152,14 +152,14 @@ export default function CreateProject() {
               onClick={() => navigate('/dashboard')}
               className="btn-cancel"
             >
-              İptal
+              Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
               className="btn-submit"
             >
-              {loading ? 'Oluşturuluyor...' : 'Proje Oluştur'}
+              {loading ? 'Creating...' : 'Create Project'}
             </button>
           </div>
         </form>

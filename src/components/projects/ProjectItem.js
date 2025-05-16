@@ -7,9 +7,9 @@ import './List.css';
 export default function ProjectItem({ project, isOwner, isCollaborator, isPublic }) {
   // Format date
   const formatDate = (timestamp) => {
-    if (!timestamp) return 'Tarih yok';
+    if (!timestamp) return 'No date';
     const date = timestamp.toDate();
-    return new Intl.DateTimeFormat('tr-TR', {
+    return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -20,7 +20,7 @@ export default function ProjectItem({ project, isOwner, isCollaborator, isPublic
   const getVisibilityInfo = () => {
     return {
       class: project.visibility === 'public' ? 'public' : 'private',
-      text: project.visibility === 'public' ? 'Herkese Açık' : 'Özel'
+      text: project.visibility === 'public' ? 'Public' : 'Private'
     };
   };
 
@@ -31,13 +31,13 @@ export default function ProjectItem({ project, isOwner, isCollaborator, isPublic
     if (isOwner) {
       return (
         <span className="role-badge owner">
-          <i className="icon-crown"></i> Sahibi
+          <i className="icon-crown"></i> Owner
         </span>
       );
     } else if (isCollaborator) {
       return (
         <span className="role-badge collaborator">
-          <i className="icon-users"></i> Ekip Üyesi
+          <i className="icon-users"></i> Team Member
         </span>
       );
     }
@@ -68,7 +68,7 @@ export default function ProjectItem({ project, isOwner, isCollaborator, isPublic
             )}
           </div>
           <span className="list-desc">
-            {project.description || 'Bu proje için henüz bir açıklama eklenmemiş.'}
+            {project.description || 'No description provided for this project.'}
           </span>
         </div>
         <div className="list-actions">
@@ -76,7 +76,7 @@ export default function ProjectItem({ project, isOwner, isCollaborator, isPublic
             to={`/projects/${project.id}`}
             className="list-action-btn"
           >
-            Detayları Görüntüle
+            View Details
           </Link>
         </div>
       </div>

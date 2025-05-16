@@ -61,6 +61,7 @@
   flex-wrap: wrap;
 }
 
+.role-badge,
 .visibility-badge {
   display: inline-flex;
   align-items: center;
@@ -68,45 +69,37 @@
   font-weight: 500;
   padding: 4px 8px;
   border-radius: 20px;
+  /* Use badge class for consistency */
 }
 
-.visibility-badge.public {
-  background-color: var(--color-success-light);
-  color: var(--color-success);
+.role-badge.owner,
+.badge-role.owner {
+  background-color: #fef3c7;
+  color: #b45309;
 }
 
-.visibility-badge.private {
-  background-color: var(--color-gray-light);
-  color: var(--color-gray-dark);
-}
-
-.role-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 20px;
-}
-
-.role-badge.owner {
-  background-color: #e0f2fe;
-  color: #0369a1;
-}
-
-.role-badge.collaborator {
+.role-badge.collaborator,
+.badge-role.collaborator {
   background-color: #ede9fe;
   color: #6d28d9;
 }
 
-.role-badge.public-project {
+.role-badge.public-project,
+.badge-role.public-project {
   background-color: #ecfdf5;
   color: #059669;
 }
 
-.visibility-badge i, .role-badge i {
-  margin-right: 4px;
-  font-size: 12px;
+.visibility-badge.public,
+.badge-visibility.public {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.visibility-badge.private,
+.badge-visibility.private {
+  background-color: var(--color-gray-light);
+  color: var(--color-gray-dark);
 }
 
 .project-meta {

@@ -220,12 +220,44 @@ textarea.form-control,
 }
 .form-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* Add CreateProject button styles */
+.btn-cancel, .btn-submit, .btn-back {
+  padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius, 8px);
+  cursor: pointer;
+  transition: all var(--transition, 0.2s ease);
+}
+
+.btn-cancel {
+  color: var(--gray-700, #374151);
+  background-color: var(--gray-100, #f3f4f6);
+}
+.btn-cancel:hover { background-color: var(--gray-200, #e5e7eb); }
+
+.btn-submit {
+  color: var(--color-white, #fff);
+  background-color: var(--primary, #4f46e5);
+}
+.btn-submit:hover:not(:disabled) { background-color: var(--primary-dark, #4338ca); }
+.btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  color: var(--gray-600, #4b5563);
+  background-color: var(--gray-100, #f3f4f6);
+}
+.btn-back:hover { background-color: var(--gray-200, #e5e7eb); }
+
 /* Actions */
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 2rem;
+  gap: var(--space-3, 0.75rem);
+  margin-top: var(--space-8, 2rem);
 }
 
 /* Error/Helper */
@@ -243,33 +275,75 @@ textarea.form-control,
 }
 
 /* Badges */
-.badge {
+.badge,
+.list-badge {
   display: inline-flex;
   align-items: center;
   height: 1.5rem;
-  padding: var(--badge-padding);
-  font-size: var(--badge-font);
+  padding: var(--badge-padding, 0.25rem 0.75rem);
+  font-size: var(--badge-font, 0.75rem);
   font-weight: 600;
-  border-radius: var(--badge-radius);
+  border-radius: var(--badge-radius, 9999px);
   line-height: 1;
   white-space: nowrap;
   gap: 0.375rem;
 }
-.badge-success { color: var(--status-success); background: var(--status-success-bg); }
-.badge-warning { color: var(--status-warning); background: var(--status-warning-bg); }
-.badge-error { color: var(--status-error); background: var(--status-error-bg); }
-.badge-info { color: var(--status-info); background: var(--status-info-bg); }
-.badge-sm { height: 1.25rem; padding: 0.125rem 0.5rem; font-size: 0.7rem; }
-.badge-lg { height: 1.75rem; padding: 0.375rem 1rem; font-size: 0.875rem; }
 
-/* Context badges */
-.badge-role.owner { background: #fef3c7; color: #b45309; }
-.badge-role.collaborator { background: #ede9fe; color: #6d28d9; }
-.badge-visibility.public { background: #d1fae5; color: #059669; }
-.badge-visibility.private { background: #fef3c7; color: #b45309; }
-.badge-status.active { background: #d1fae5; color: #059669; }
-.badge-status.pending { background: #fef3c7; color: #d97706; }
-.badge-status.urgent { background: #fee2e2; color: #dc2626; }
+/* Role badges */
+.badge-role,
+.list-badge.owner {
+  background: #fef3c7;
+  color: #b45309;
+}
+.badge-role.collaborator,
+.list-badge.collaborator {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+/* Visibility badges */
+.badge-visibility.public,
+.list-badge.public {
+  background: #d1fae5;
+  color: #059669;
+}
+.badge-visibility.private,
+.list-badge.private {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* Status badges */
+.badge-status.active {
+  background: #d1fae5;
+  color: #059669;
+}
+.badge-status.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+.badge-status.urgent {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Priority badges */
+.badge-priority,
+.list-badge.priority-low,
+.badge-priority-low {
+  background: var(--gray-100, #f3f4f6);
+  color: var(--gray-600, #4b5563);
+}
+.list-badge.priority-medium,
+.badge-priority-medium {
+  background: var(--status-warning-bg, #fef3c7);
+  color: var(--status-warning, #f59e0b);
+}
+.list-badge.priority-high,
+.badge-priority-high {
+  background: var(--status-error-bg, #fee2e2);
+  color: var(--status-error, #ef4444);
+}
 
 /* Input group */
 .input-group {
