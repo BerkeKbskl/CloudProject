@@ -187,7 +187,16 @@ export default function UserPage() {
           <div className="form-group">
             <label className="form-label">Account Created At</label>
             <span className="user-meta">
-              {user?.createdAt ? user.createdAt.toLocaleString('en-US') : 'Unknown'}
+              {user?.createdAt 
+                ? new Date(user.createdAt).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : 'Unknown'
+              }
             </span>
           </div>
         </div>

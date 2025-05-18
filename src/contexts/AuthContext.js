@@ -22,24 +22,24 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null); // Error state for better error handling
 
   async function signup(email, password, displayName) {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Update the user's profile with the display name
-      await updateProfile(userCredential.user, { displayName: displayName });
-      
-      // Create user document in Firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        email,
-        displayName
-      });
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(userCredential.user, { displayName: displayName });
+    
+    // Create user document in Firestore with createdAt field
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      uid: userCredential.user.uid,
+      email,
+      displayName,
+      createdAt: new Date() // Add creation date
+    });
 
-      return userCredential.user;
-    } catch (error) {
-      setError(error.message); // Set error message to state
-      throw error; // Re-throw error after setting it
-    }
+    return userCredential.user;
+  } catch (error) {
+    setError(error.message);
+    throw error;
   }
+}
 
   function login(email, password) {
     return signInWithEmailAndPassword(auth, email, password);

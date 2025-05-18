@@ -37,11 +37,7 @@ exports.getUserProfileData = onCall(async (data, context) => {
     
     // User ID validation
     if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-      logError(FUNCTION_NAME, new Error('Invalid userId'), { userId });
-      throw new functions.https.HttpsError(
-        'invalid-argument', 
-        'User ID is required.'
-      );
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid user ID');
     }
     
     const trimmedUserId = userId.trim();
@@ -51,8 +47,7 @@ exports.getUserProfileData = onCall(async (data, context) => {
     const userDoc = await db.collection('users').doc(trimmedUserId).get();
     
     if (!userDoc.exists) {
-      logError(FUNCTION_NAME, new Error('User not found'), { userId: trimmedUserId });
-      throw new functions.https.HttpsError('not-found', 'User not found.');
+      throw new functions.https.HttpsError('not-found', 'User not found');
     }
     
     const userData = userDoc.data();
@@ -61,21 +56,13 @@ exports.getUserProfileData = onCall(async (data, context) => {
     // Convert timestamp
     const userResponse = {
       ...userData,
-      createdAt: userData.createdAt ? userData.createdAt.toDate().toISOString() : null,
+      createdAt: userData.createdAt?.toDate().toISOString() || null,
     };
     
     return userResponse;
   } catch (error) {
     logError(FUNCTION_NAME, error);
-    
-    if (error.code && error instanceof functions.https.HttpsError) {
-      throw error;
-    }
-    
-    throw new functions.https.HttpsError(
-      'internal', 
-      'Server error: ' + (error.message || String(error))
-    );
+    throw new functions.https.HttpsError('internal', 'Server error: ' + error.message);
   }
 });
 
