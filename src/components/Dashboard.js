@@ -66,7 +66,7 @@ export default function Dashboard() {
         )}
       </div>
       <div className="dashboard-footer">
-        <p>&copy; 2023 Project Management App — Berke Kabasakal & Ferhat Onur Özgan</p>
+        <p>&copy; 2025 Project Management App — Berke Kabasakal & Ferhat Onur Özgan</p>
       </div>  
     </div>
   );

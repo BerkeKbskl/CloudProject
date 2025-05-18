@@ -10,7 +10,7 @@ const functions = getFunctions();
 export default function UserPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, updateUserDisplayName } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,14 +34,10 @@ export default function UserPage() {
         setLoading(true);
         setError('');
 
-        // Debug log
-        // console.log("Sending userId:", userId);
-
         const result = await getUserProfileData({ userId: userId.trim() });
 
         if (result.data) {
           const userData = result.data;
-          // console.log("User data received:", userData);
           setUser({
             ...userData,
             createdAt: userData.createdAt ? new Date(userData.createdAt) : null,
@@ -50,13 +46,6 @@ export default function UserPage() {
           setError('Could not retrieve user data.');
         }
       } catch (err) {
-        // console.error('Error loading user info:', err);
-        // console.log('Error details:', {
-        //   code: err.code,
-        //   message: err.message,
-        //   details: err.details,
-        //   stack: err.stack
-        // });
         if (err.code === 'not-found') {
           setError('User not found.');
         } else if (err.code === 'internal') {
@@ -82,15 +71,22 @@ export default function UserPage() {
       setIsSaving(true);
       setError('');
 
+      // Call the Firebase Function to update the user data in Firestore
       await updateUserProfileData({
         userId: userId.trim(),
         displayName: newDisplayName.trim()
       });
 
+      // Also update the Auth profile to ensure the navbar updates
+      if (isCurrentUser) {
+        // Update the auth display name which will trigger UI updates
+        await updateUserDisplayName(newDisplayName.trim());
+      }
+
+      // Update local state
       setUser(prev => ({ ...prev, displayName: newDisplayName.trim() }));
       setIsEditing(false);
     } catch (err) {
-      // console.error('Error updating name:', err);
       if (err.code === 'unauthenticated') {
         setError('Your session has expired, please log in again.');
       } else if (err.code === 'permission-denied') {

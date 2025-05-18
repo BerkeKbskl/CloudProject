@@ -43,21 +43,12 @@
   flex-direction: column;
   padding: 1rem;
   border-radius: 8px;
-  background-color: var(--color-white);
-  box-shadow: var(--shadow);
+  margin-top: 15px;
   margin-bottom: 12px;
   transition: var(--transition);
-  border-left: 4px solid var(--color-primary-300);
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius);
 }
 
-.task-item:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-  border-color: var(--color-primary-300);
-}
+
 
 .task-item.completed-task {
   border-left-color: var(--color-success-500);

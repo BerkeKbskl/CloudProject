@@ -376,7 +376,7 @@ export default function ProjectDetails() {
             {tasksLoading ? (
               <p>Tasks are loading...</p>
             ) : tasks.length > 0 ? (
-              <div className="tasks-list">
+              <div className="list">
                 {tasks.map(task => (
                   <TaskItem
                     key={task.id}

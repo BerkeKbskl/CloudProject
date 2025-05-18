@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './Navbar.css';
@@ -19,6 +19,16 @@ export default function Navbar() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Track display name separately to ensure we update when it changes
+  const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
+  
+  // Update displayName whenever currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      setDisplayName(currentUser.displayName || '');
+    }
+  }, [currentUser]);
 
   const path = location.pathname;
 
@@ -65,9 +75,9 @@ export default function Navbar() {
             onClick={() => navigate(`/user/${currentUser.uid}`)}
           >
             <div className="avatar small">
-              {currentUser.displayName?.charAt(0).toUpperCase() || '?'}
+              {displayName?.charAt(0).toUpperCase() || '?'}
             </div>
-            <span className="user-name">{currentUser.displayName || t.user}</span>
+            <span className="user-name">{displayName || t.user}</span>
           </button>
         </>
       );
@@ -103,9 +113,12 @@ export default function Navbar() {
           <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="navbar-mobile-button">{t.logout}</button>
           <button
             className="navbar-mobile-button"
-            onClick={() => { navigate('/user'); setMenuOpen(false); }}
+            onClick={() => { 
+              navigate(`/user/${currentUser.uid}`); 
+              setMenuOpen(false); 
+            }}
           >
-            {currentUser.displayName || t.user}
+            {displayName || t.user}
           </button>
         </>
       );

@@ -53,6 +53,22 @@ export function AuthProvider({ children }) {
     return sendPasswordResetEmail(auth, email);
   }
 
+  // New function to update user's display name in the auth object
+  async function updateUserDisplayName(displayName) {
+    if (!currentUser) throw new Error('No user is logged in');
+    
+    await updateProfile(currentUser, { displayName });
+    
+    // Update our local state to reflect the changes immediately
+    // This ensures components using currentUser will re-render with new value
+    setCurrentUser(prev => {
+      // Create a new object to ensure React detects the change
+      return { ...prev, displayName };
+    });
+    
+    return currentUser;
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -68,6 +84,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     resetPassword,
+    updateUserDisplayName, // Add the new function to the context
     error // Expose the error state to other components
   };
 

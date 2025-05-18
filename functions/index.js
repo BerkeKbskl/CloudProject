@@ -1,11 +1,13 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const { onCall } = require('firebase-functions/v2/https');
 const logger = require('firebase-functions/logger');
 const functions = require('firebase-functions');
 
 initializeApp();
 const db = getFirestore();
+const auth = getAuth();
 
 // Helper functions for logging
 const logError = (functionName, error, additionalInfo = {}) => {
@@ -92,6 +94,11 @@ exports.updateUserProfileData = onCall(async (data, context) => {
     
     // Update user information in Firestore
     await db.collection('users').doc(userId).update({
+      displayName: displayName
+    });
+    
+    // Update user information in Firebase Auth
+    await auth.updateUser(userId, {
       displayName: displayName
     });
     

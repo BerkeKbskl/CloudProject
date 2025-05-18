@@ -17,7 +17,6 @@ const functions = getFunctions();
 const getProjectCollaborators = httpsCallable(functions, 'getProjectCollaborators');
 const addProjectCollaborator = httpsCallable(functions, 'addProjectCollaborator');
 const removeProjectCollaborator = httpsCallable(functions, 'removeProjectCollaborator');
-const updateCollaboratorRole = httpsCallable(functions, 'updateCollaboratorRole');
 
 export default function CollaboratorsList({ projectId, ownerId, onCollaboratorUpdated }) {
   const [collaboratorUsers, setCollaboratorUsers] = useState([]);
@@ -29,7 +28,7 @@ export default function CollaboratorsList({ projectId, ownerId, onCollaboratorUp
   const navigate = useNavigate();
 
   // Load collaborators
-  const fetchCollaborators = async () => {
+  const fetchCollaborators = React.useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -54,14 +53,14 @@ export default function CollaboratorsList({ projectId, ownerId, onCollaboratorUp
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
   // Fetch collaborators when component mounts
   useEffect(() => {
     if (projectId) {
       fetchCollaborators();
     }
-  }, [projectId]);
+  }, [projectId, fetchCollaborators]);
 
   // Add collaborator
   const handleAddCollaborator = async (e) => {
@@ -132,29 +131,6 @@ export default function CollaboratorsList({ projectId, ownerId, onCollaboratorUp
         console.error('Error removing collaborator:', err);
         setError('Error removing user: ' + (err.message || 'Operation failed'));
       }
-    }
-  };
-
-  // Update collaborator role
-  const handleUpdateRole = async (userId, newRole) => {
-    try {
-      setError('');
-      
-      await updateCollaboratorRole({
-        projectId,
-        userId,
-        role: newRole,
-        time: Timestamp.now()
-      });
-      
-      fetchCollaborators();
-      
-      if (onCollaboratorUpdated) {
-        onCollaboratorUpdated();
-      }
-    } catch (err) {
-      console.error('Error updating role:', err);
-      setError('Error updating role: ' + (err.message || 'Operation failed'));
     }
   };
 
