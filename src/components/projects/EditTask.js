@@ -79,11 +79,19 @@ export default function EditTask() {
       setIsSubmitting(true);
       const taskRef = doc(db, 'tasks', taskId);
       
-      // Add updatedAt to the task itself
+      // Process the task data before updating
       const taskData = { 
-        ...form,
+        name: form.name,
+        description: form.description,
+        priority: form.priority,
+        completed: form.completed,
         updatedAt: Timestamp.now() 
       };
+      
+      // Only add dueDate if it's not empty
+      if (form.dueDate) {
+        taskData.dueDate = Timestamp.fromDate(new Date(form.dueDate));
+      }
       
       await updateDoc(taskRef, taskData);
       

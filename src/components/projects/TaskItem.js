@@ -28,14 +28,40 @@ export default function TaskItem({
   const functions = getFunctions();
   const deleteTaskFunction = httpsCallable(functions, 'deleteTask');
 
-  const formatDate = (ts) =>
-    ts?.toDate
-      ? new Intl.DateTimeFormat('tr-TR', {
+  const formatDate = (ts) => {
+    // Check if timestamp is defined
+    if (!ts) return '–';
+    
+    // Check if it's a Firestore Timestamp
+    if (ts?.toDate && typeof ts.toDate === 'function') {
+      return new Intl.DateTimeFormat('tr-TR', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-      }).format(ts.toDate())
-      : '–';
+      }).format(ts.toDate());
+    }
+    
+    // Handle string date or timestamp with _seconds property
+    if (ts._seconds) {
+      return new Intl.DateTimeFormat('tr-TR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }).format(new Date(ts._seconds * 1000));
+    }
+    
+    // If it's a string or another format, try to create a date
+    try {
+      return new Intl.DateTimeFormat('tr-TR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }).format(new Date(ts));
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '–';
+    }
+  };
 
   const getPriorityBadgeClass = () => {
     if (priority === 'low') return 'badge-priority-low';
