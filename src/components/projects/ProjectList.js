@@ -188,6 +188,8 @@ export default function ProjectList({ searchTerm = '' }) {
                   <ProjectItem 
                     key={project.id} 
                     project={project} 
+                    isOwner={project.isOwner}
+                    isCollaborator={project.isCollaborator}
                     isPublic={true}
                   />
                 ))}
