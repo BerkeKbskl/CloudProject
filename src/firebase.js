@@ -22,4 +22,11 @@ const auth = getAuth(app);
 const functions = getFunctions(app);
 const rtdb = getDatabase(app);
 
+if (window.location.hostname === 'localhost') {
+  connectAuthEmulator(auth, "http://localhost:9099");
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+  connectDatabaseEmulator(rtdb, 'localhost', 9000);
+}
+
 export { app, db, auth, functions, rtdb };
