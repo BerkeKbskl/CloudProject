@@ -134,12 +134,19 @@ export function ProjectProvider({ children }) {
       const publicProjectsList = [];
       publicSnapshot.forEach((doc) => {
         const projectData = doc.data();
-        
         // If it's not already in the user's projects, add to public projects
         if (!projectsMap.has(doc.id) && projectData.ownerId !== currentUser.uid) {
+          // Check if current user is a collaborator in this public project
+          const isCollaborator = Array.isArray(projectData.collaborators) &&
+            projectData.collaborators.some(
+              collab => typeof collab === 'string'
+                ? collab === currentUser.uid
+                : collab.userId === currentUser.uid
+            );
           publicProjectsList.push({ 
             id: doc.id, 
             ...projectData,
+            isCollaborator: isCollaborator ? true : undefined,
             // Ensure timestamps are properly handled
             createdAt: projectData.createdAt || Timestamp.now(),
             updatedAt: projectData.updatedAt || Timestamp.now()
