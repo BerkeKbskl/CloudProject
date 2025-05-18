@@ -43,137 +43,65 @@ export function ProjectProvider({ children }) {
       setLoading(true);
       setError('');
       
-      // Get projects owned by the user
-      const ownedProjectsRef = collection(db, "projects");
-      let ownedSnapshot;
-      
-      try {
-        // Try with index first (ideal case)
-        const ownedQuery = query(
-          ownedProjectsRef, 
-          where("ownerId", "==", currentUser.uid),
-          orderBy("createdAt", "desc")
-        );
-        ownedSnapshot = await getDocs(ownedQuery);
-      } catch (indexError) {
-        console.warn("Index error for owned projects, fetching without ordering:", indexError);
-        // Fallback if index doesn't exist
-        const ownedQueryFallback = query(
-          ownedProjectsRef, 
-          where("ownerId", "==", currentUser.uid)
-        );
-        ownedSnapshot = await getDocs(ownedQueryFallback);
-      }
-      
-      // Get projects where the user is a collaborator
-      const sharedProjectsRef = collection(db, "projects");
-      const sharedQuery = query(
-        sharedProjectsRef,
-        where("collaborators", "array-contains", currentUser.uid)
-      );
-      
-      // Get all public projects
-      const publicProjectsRef = collection(db, "projects");
-      let publicSnapshot;
-      
-      try {
-        // Try with index first (ideal case)
-        const publicQuery = query(
-          publicProjectsRef,
-          where("visibility", "==", "public"),
-          orderBy("createdAt", "desc")
-        );
-        publicSnapshot = await getDocs(publicQuery);
-      } catch (indexError) {
-        console.warn("Index error for public projects, fetching without ordering:", indexError);
-        // Fallback if index doesn't exist
-        const publicQueryFallback = query(
-          publicProjectsRef,
-          where("visibility", "==", "public")
-        );
-        publicSnapshot = await getDocs(publicQueryFallback);
-      }
-      
-      // Execute shared projects query
-      const sharedSnapshot = await getDocs(sharedQuery);
-      
-      // Process owned and shared projects (user's projects)
-      const projectsMap = new Map();
-      
-      // Add owned projects
-      ownedSnapshot.forEach((doc) => {
-        const projectData = doc.data();
-        const project = { 
-          id: doc.id, 
-          ...projectData, 
-          isOwner: true,
-          // Ensure timestamps are properly handled
-          createdAt: projectData.createdAt || Timestamp.now(),
-          updatedAt: projectData.updatedAt || Timestamp.now()
-        };
-        projectsMap.set(doc.id, project);
-      });
-      
-      // Add shared projects
-      sharedSnapshot.forEach((doc) => {
-        if (!projectsMap.has(doc.id)) {
-          const projectData = doc.data();
-          const project = { 
-            id: doc.id, 
-            ...projectData, 
-            isCollaborator: true,
-            // Ensure timestamps are properly handled
-            createdAt: projectData.createdAt || Timestamp.now(),
-            updatedAt: projectData.updatedAt || Timestamp.now()
-          };
-          projectsMap.set(doc.id, project);
-        }
-      });
-      
-      // Process public projects (not already included)
+      const projectsRef = collection(db, "projects");
+      const allProjectsSnapshot = await getDocs(projectsRef);
+
+      const mainProjects = [];
       const publicProjectsList = [];
-      publicSnapshot.forEach((doc) => {
-        const projectData = doc.data();
-        // Only add to publicProjects if NOT owner and NOT collaborator
-        const isCollaborator = Array.isArray(projectData.collaborators) &&
-          projectData.collaborators.some(
+
+      allProjectsSnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const isOwner = data.ownerId === currentUser.uid;
+        const isCollaborator = Array.isArray(data.collaborators) &&
+          data.collaborators.some(
             collab => typeof collab === 'string'
               ? collab === currentUser.uid
               : collab.userId === currentUser.uid
           );
-        if (
-          !projectsMap.has(doc.id) &&
-          projectData.ownerId !== currentUser.uid &&
-          !isCollaborator
-        ) {
+        const isPublic = data.visibility === 'public';
+
+        // Main projects: owner or collaborator (any visibility)
+        if (isOwner) {
+          mainProjects.push({
+            id: docSnap.id,
+            ...data,
+            isOwner: true,
+            createdAt: data.createdAt || Timestamp.now(),
+            updatedAt: data.updatedAt || Timestamp.now()
+          });
+        } else if (isCollaborator) {
+          mainProjects.push({
+            id: docSnap.id,
+            ...data,
+            isCollaborator: true,
+            createdAt: data.createdAt || Timestamp.now(),
+            updatedAt: data.updatedAt || Timestamp.now()
+          });
+        } else if (isPublic) {
+          // Public section: not owner, not collaborator, and public
           publicProjectsList.push({
-            id: doc.id,
-            ...projectData,
-            createdAt: projectData.createdAt || Timestamp.now(),
-            updatedAt: projectData.updatedAt || Timestamp.now()
+            id: docSnap.id,
+            ...data,
+            createdAt: data.createdAt || Timestamp.now(),
+            updatedAt: data.updatedAt || Timestamp.now()
           });
         }
+        // else: private and not owner/collaborator => do not show
       });
-      
-      // Sort projects by createdAt if we had to use the fallback queries
-      let projectsList = Array.from(projectsMap.values());
-      // No need to add public-collaborator projects separately!
-      
-      // Ensure we sort by createdAt in descending order (newest first)
-      projectsList.sort((a, b) => {
+
+      // Sort both lists by createdAt descending
+      mainProjects.sort((a, b) => {
         const aTime = a.createdAt?.seconds || 0;
         const bTime = b.createdAt?.seconds || 0;
         return bTime - aTime;
       });
-      
-      // Sort public projects too
       publicProjectsList.sort((a, b) => {
         const aTime = a.createdAt?.seconds || 0;
         const bTime = b.createdAt?.seconds || 0;
         return bTime - aTime;
       });
-      
-      setProjects(projectsList);
+
+      setProjects(mainProjects);
       setPublicProjects(publicProjectsList);
     } catch (error) {
       console.error("Error fetching projects:", error);
