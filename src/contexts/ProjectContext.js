@@ -132,9 +132,10 @@ export function ProjectProvider({ children }) {
       
       // Process public projects (not already included)
       const publicProjectsList = [];
+      // Collect public projects where user is a collaborator to add to main projects
+      const publicCollaboratorProjects = [];
       publicSnapshot.forEach((doc) => {
         const projectData = doc.data();
-        // If it's not already in the user's projects, add to public projects
         if (!projectsMap.has(doc.id) && projectData.ownerId !== currentUser.uid) {
           // Check if current user is a collaborator in this public project
           const isCollaborator = Array.isArray(projectData.collaborators) &&
@@ -143,19 +144,31 @@ export function ProjectProvider({ children }) {
                 ? collab === currentUser.uid
                 : collab.userId === currentUser.uid
             );
-          publicProjectsList.push({ 
-            id: doc.id, 
-            ...projectData,
-            isCollaborator: isCollaborator ? true : undefined,
-            // Ensure timestamps are properly handled
-            createdAt: projectData.createdAt || Timestamp.now(),
-            updatedAt: projectData.updatedAt || Timestamp.now()
-          });
+          if (isCollaborator) {
+            // Add to main projects as a collaborator
+            publicCollaboratorProjects.push({
+              id: doc.id,
+              ...projectData,
+              isCollaborator: true,
+              createdAt: projectData.createdAt || Timestamp.now(),
+              updatedAt: projectData.updatedAt || Timestamp.now()
+            });
+          } else {
+            // Only non-team-member public projects go to publicProjects
+            publicProjectsList.push({
+              id: doc.id,
+              ...projectData,
+              createdAt: projectData.createdAt || Timestamp.now(),
+              updatedAt: projectData.updatedAt || Timestamp.now()
+            });
+          }
         }
       });
       
       // Sort projects by createdAt if we had to use the fallback queries
       let projectsList = Array.from(projectsMap.values());
+      // Add public-collaborator projects to main projects list
+      projectsList = [...projectsList, ...publicCollaboratorProjects];
       
       // Ensure we sort by createdAt in descending order (newest first)
       projectsList.sort((a, b) => {
