@@ -20,7 +20,7 @@ export default function ProjectDetails() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { deleteProject, updateProject } = useProjects();
+  const { deleteProject } = useProjects();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -38,11 +38,8 @@ export default function ProjectDetails() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const functions = getFunctions();
 
-  const deleteTaskFunction = useMemo(() => httpsCallable(functions, 'deleteTask'), [functions]);
+  // Only keep the updateTaskFunction
   const updateTaskFunction = useMemo(() => httpsCallable(functions, 'updateTask'), [functions]);
-
-  const { name: editName, description: editDescription, visibility: editVisibility } = editForm;
-
 
   const fetchProjectDetails = useCallback(async () => {
     try {
@@ -200,39 +197,6 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    if (!editName.trim()) {
-      return setError('Project name cannot be empty');
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError('');
-
-      await updateProject(projectId, {
-        name: editName,
-        description: editDescription,
-        visibility: editVisibility
-      });
-
-      setProject(prev => ({
-        ...prev,
-        name: editName,
-        description: editDescription,
-        visibility: editVisibility,
-        updatedAt: new Date()
-      }));
-
-      setIsEditing(false);
-    } catch (err) {
-      setError('An error occurred while updating the project: ' + err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const refreshProject = () => {
     fetchProjectDetails();
     fetchTasks();
@@ -260,20 +224,6 @@ export default function ProjectDetails() {
     navigate(`/projects/${projectId}/edit`);
   };
 
-  const handleDeleteTask = async (taskId) => {
-    if(window.confirm('Do you really want to delete this task? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      await deleteTaskFunction({ taskId, projectId });
-      setTasks(currentTasks => currentTasks.filter(task => task.id !== taskId));
-      console.log('Task deleted successfully');
-    } catch (error) {
-      setError('An error occurred while deleting the task: ' + error.message);
-    }
-  };
-
   const handleToggleComplete = async (taskId, currentStatus) => {
     try {
       await updateTaskFunction({
@@ -296,8 +246,13 @@ export default function ProjectDetails() {
     }
   };
 
+  // Update the task deletion handler to simply refresh tasks
+  const handleTaskDeleted = () => {
+    fetchTasks();
+  };
+
   const taskProps = {
-    onDelete: handleDeleteTask,
+    onDelete: handleTaskDeleted,
     onToggleComplete: handleToggleComplete,
     canEdit: project?.isOwner || project?.isCollaborator
   };

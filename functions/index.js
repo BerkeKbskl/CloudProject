@@ -567,7 +567,9 @@ exports.createTask = onCall(async (data, context) => {
 exports.deleteTask = onCall(async (data, context) => {
   const FUNCTION_NAME = 'deleteTask';
   try {
-    const { taskId, projectId } = data;
+    const taskId = data?.taskId || data?.data?.taskId;
+    const projectId = data?.projectId || data?.data?.projectId;
+
     
     // Parameter validation
     if (!taskId || !projectId) {

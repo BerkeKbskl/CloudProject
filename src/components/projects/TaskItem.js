@@ -1,10 +1,11 @@
 // components/projects/TaskItem.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import './TaskItem.css';
 import './List.css';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 export default function TaskItem({
   task,
@@ -22,6 +23,10 @@ export default function TaskItem({
     description,
     projectId,
   } = task;
+
+  // Initialize Firebase functions
+  const functions = getFunctions();
+  const deleteTaskFunction = httpsCallable(functions, 'deleteTask');
 
   const formatDate = (ts) =>
     ts?.toDate
@@ -70,7 +75,7 @@ export default function TaskItem({
       // Update project timestamp when task completion status changes
       await updateProjectTimestamp();
       
-      onToggleComplete(id, !completed); // Update parent state
+      onToggleComplete(id, completed); // Update parent state
     } catch (err) {
       console.error('Error updating task completion:', err);
     }
@@ -81,23 +86,22 @@ export default function TaskItem({
     e.stopPropagation();
 
     if (!canEdit) return; // Prevent unauthorized users from deleting
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      try {
-        const taskRef = doc(db, 'tasks', id);
-        await deleteDoc(taskRef);
-        
-        // Update project timestamp when task is deleted
-        await updateProjectTimestamp();
-        
-        if (onDelete) {
-          onDelete(id);
-        } else if (onToggleComplete) {
-          // If no specific delete handler provided, use the toggle handler to refresh
-          onToggleComplete();
-        }
-      } catch (err) {
-        console.error('Error deleting task:', err);
+    
+    if (!window.confirm('Are you sure you want to delete this task?')) {
+      return; 
+    }
+    
+    try {
+      await deleteTaskFunction({ taskId: id, projectId });
+      
+      await updateProjectTimestamp();
+      
+      if (onDelete) {
+        onDelete(id);
       }
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      alert('Failed to delete task: ' + err.message);
     }
   };
 
