@@ -78,9 +78,14 @@ export default function UserPage() {
       });
 
       // Also update the Auth profile to ensure the navbar updates
-      if (isCurrentUser) {
-        // Update the auth display name which will trigger UI updates
-        await updateUserDisplayName(newDisplayName.trim());
+      if (isCurrentUser && currentUser) {
+        try {
+          // Update the auth display name which will trigger UI updates
+          await updateUserDisplayName(newDisplayName.trim());
+        } catch (authErr) {
+          console.error("Error updating auth display name:", authErr);
+          // Continue execution even if this fails
+        }
       }
 
       // Update local state
@@ -101,10 +106,12 @@ export default function UserPage() {
     }
   };
 
+  // Check if we have a valid user before rendering
+  const isCurrentUser = currentUser && currentUser.uid === userId;
+
   if (loading) return <div className="loading">Loading user information...</div>;
   if (error) return <div className="error-alert">{error}</div>;
-
-  const isCurrentUser = currentUser?.uid === userId;
+  if (!user) return <div className="error-alert">User not found</div>;
 
   return (
     <>
